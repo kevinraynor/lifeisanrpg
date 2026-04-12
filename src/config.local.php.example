@@ -1,0 +1,19 @@
+<?php
+/**
+ * Local configuration overrides.
+ * Copy this file to config.local.php and update values.
+ * This file is gitignored — never commit credentials.
+ */
+return [
+    'db' => [
+        'host'     => '127.0.0.1',
+        'name'     => 'liferpg',
+        'user'     => 'root',
+        'password' => '',
+    ],
+
+    'app' => [
+        'debug' => true,
+        'url'   => 'http://liferpg.local',
+    ],
+];

@@ -1,0 +1,128 @@
+/* ===================================================================
+   Life Is An RPG - Theme & Design Tokens
+   =================================================================== */
+
+/* --- Fonts (Google Fonts CDN for now; self-host for production) --- */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap');
+
+/* --- Design Tokens --- */
+:root {
+    /* Parchment palette */
+    --color-bg-primary:     #f5e6c8;
+    --color-bg-secondary:   #e8d5a3;
+    --color-bg-card:        #faf3e0;
+    --color-bg-dark:        #2c1810;
+    --color-bg-darker:      #1a0f0a;
+
+    /* Text */
+    --color-text-primary:   #3d2b1f;
+    --color-text-secondary: #6b5744;
+    --color-text-muted:     #8a7a6a;
+    --color-text-light:     #f5e6c8;
+
+    /* Accents */
+    --color-gold:           #c8a84e;
+    --color-gold-light:     #e8d48a;
+    --color-gold-dark:      #a08030;
+    --color-green:          #4a7c3f;
+    --color-green-light:    #6baf5a;
+    --color-red:            #8b3a3a;
+    --color-blue:           #3a5a8b;
+    --color-purple:         #6b3a8a;
+
+    /* Borders */
+    --border-card:          2px solid #8b7355;
+    --border-card-light:    1px solid #c4b08a;
+    --border-ornate:        3px double #8b7355;
+    --border-radius:        8px;
+    --border-radius-sm:     4px;
+    --border-radius-lg:     12px;
+
+    /* Shadows */
+    --shadow-card:          0 2px 8px rgba(44, 24, 16, 0.15);
+    --shadow-hover:         0 4px 16px rgba(44, 24, 16, 0.25);
+    --shadow-inset:         inset 0 1px 3px rgba(44, 24, 16, 0.1);
+
+    /* Typography */
+    --font-heading:         'Cinzel', 'Times New Roman', serif;
+    --font-body:            'Lora', 'Georgia', serif;
+    --font-ui:              'Inter', 'Segoe UI', sans-serif;
+
+    /* Spacing */
+    --space-xs:  4px;
+    --space-sm:  8px;
+    --space-md:  16px;
+    --space-lg:  24px;
+    --space-xl:  32px;
+    --space-2xl: 48px;
+    --space-3xl: 64px;
+
+    /* Progress bar */
+    --xp-bar-bg:     #d4c4a0;
+    --xp-bar-fill:   linear-gradient(90deg, #4a7c3f, #6baf5a);
+    --xp-bar-height: 12px;
+
+    /* Layout */
+    --header-height:  64px;
+    --sidebar-width:  220px;
+    --social-panel-width: 280px;
+    --max-content-width: 1200px;
+}
+
+/* --- Reset --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--color-text-primary);
+    background: var(--color-bg-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--color-text-primary);
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.25rem; }
+
+a {
+    color: var(--color-gold-dark);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: var(--color-gold);
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* --- Scrollbar styling --- */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--color-bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+    background: #8b7355;
+    border-radius: 4px;
+}

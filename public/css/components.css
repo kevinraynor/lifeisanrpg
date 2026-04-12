@@ -1,0 +1,404 @@
+/* ===================================================================
+   Components: Buttons, Cards, Progress Bars, Tooltips
+   =================================================================== */
+
+/* --- Fantasy Buttons --- */
+.btn-fantasy {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    padding: 10px 24px;
+    border: var(--border-card);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.btn-primary {
+    background: var(--color-bg-dark);
+    color: var(--color-gold);
+    border-color: var(--color-gold-dark);
+}
+
+.btn-primary:hover {
+    background: #3d2510;
+    color: var(--color-gold-light);
+    box-shadow: 0 0 12px rgba(200, 168, 78, 0.3);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--color-text-primary);
+    border-color: var(--color-text-secondary);
+}
+
+.btn-secondary:hover {
+    background: rgba(44, 24, 16, 0.05);
+    border-color: var(--color-text-primary);
+}
+
+.btn-large {
+    padding: 14px 36px;
+    font-size: 1rem;
+}
+
+.btn-small {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+}
+
+/* --- Character Card --- */
+.character-card {
+    background: var(--color-bg-card);
+    border: var(--border-ornate);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-card);
+    max-width: 340px;
+}
+
+.character-card__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.character-card__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid var(--color-gold);
+    background: var(--color-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    overflow: hidden;
+}
+
+.character-card__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    color: var(--color-gold-dark);
+}
+
+.character-card__name {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    margin-bottom: 2px;
+}
+
+.character-card__class {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-ui);
+}
+
+.character-card__stats h4 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: var(--space-md);
+}
+
+.view-all {
+    font-size: 0.75rem;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid rgba(139, 115, 85, 0.15);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-icon {
+    width: 24px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.stat-name {
+    flex: 1;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-gold-dark);
+}
+
+/* --- Progress Bar --- */
+.progress-bar {
+    width: 100%;
+    height: var(--xp-bar-height);
+    background: var(--xp-bar-bg);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: var(--shadow-inset);
+}
+
+.progress-bar__fill {
+    height: 100%;
+    background: var(--xp-bar-fill);
+    border-radius: 6px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 0;
+}
+
+/* --- Ornate Card (generic) --- */
+.card-ornate {
+    background: var(--color-bg-card);
+    border: var(--border-card);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.3s;
+}
+
+.card-ornate:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+/* --- Skill Tooltip --- */
+.skill-tooltip {
+    position: absolute;
+    z-index: 200;
+    background: var(--color-bg-card);
+    border: var(--border-ornate);
+    border-radius: var(--border-radius);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-hover);
+    max-width: 300px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.skill-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.skill-tooltip__name {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    margin-bottom: var(--space-xs);
+}
+
+.skill-tooltip__category {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: var(--space-sm);
+}
+
+.skill-tooltip__desc {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-sm);
+}
+
+.skill-tooltip__attrs {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+/* --- Form Elements (Fantasy styled) --- */
+.form-group {
+    margin-bottom: var(--space-lg);
+}
+
+.form-label {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-xs);
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    border: var(--border-card-light);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-gold);
+    box-shadow: 0 0 0 2px rgba(200, 168, 78, 0.2);
+}
+
+.form-input::placeholder {
+    color: var(--color-text-muted);
+}
+
+/* --- Wizard Steps --- */
+.wizard-steps {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xl);
+    margin-bottom: var(--space-2xl);
+}
+
+.wizard-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    opacity: 0.4;
+    transition: opacity 0.3s;
+}
+
+.wizard-step.active {
+    opacity: 1;
+}
+
+.wizard-step.completed {
+    opacity: 0.8;
+}
+
+.step-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--color-gold-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--color-gold-dark);
+}
+
+.wizard-step.active .step-number {
+    background: var(--color-gold-dark);
+    color: var(--color-text-light);
+}
+
+.wizard-step.completed .step-number {
+    background: var(--color-green);
+    border-color: var(--color-green);
+    color: white;
+}
+
+.step-label {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.wizard-content {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* --- Skill List Item --- */
+.skill-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius);
+    background: var(--color-bg-card);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.skill-item:hover {
+    box-shadow: var(--shadow-hover);
+    border-color: var(--color-gold);
+}
+
+.skill-item__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-sm);
+    background: var(--color-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.skill-item__info {
+    flex: 1;
+}
+
+.skill-item__name {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.skill-item__level {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.skill-item__progress {
+    width: 120px;
+}
+
+/* --- Log Hours Input --- */
+.log-hours {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.log-hours input {
+    width: 80px;
+    padding: 6px 10px;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    border: var(--border-card-light);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-bg-card);
+    text-align: center;
+}
+
+.log-hours button {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}

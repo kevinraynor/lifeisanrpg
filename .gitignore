@@ -1,0 +1,27 @@
+# Local config (contains DB credentials)
+src/config.local.php
+
+# Logs
+storage/logs/*
+!storage/logs/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude
+.claude/*
+CLAUDE.md
+
+# Local
+design/*
+
+# Previous conversation reference
+life_rpg_full_conversation.pdf
