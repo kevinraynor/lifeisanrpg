@@ -12,7 +12,7 @@
                 <a href="/app" class="nav-link">Dashboard</a>
                 <a href="/account" class="nav-link">Account</a>
             <?php else: ?>
-                <a href="/login" class="nav-link">Log In</a>
+                <a href="#" class="nav-link" id="login-link">Log In</a>
                 <a href="/register" class="btn-fantasy btn-primary">Start Your Journey</a>
             <?php endif; ?>
         </nav>

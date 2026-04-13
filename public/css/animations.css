@@ -61,9 +61,23 @@
     animation: levelUpBurst 0.6s ease-out, levelUpGlow 1.5s ease-out;
 }
 
+.level-up-stars {
+    font-size: 1.5rem;
+    color: var(--color-gold);
+    margin-bottom: var(--space-sm);
+    letter-spacing: 8px;
+}
+
 .level-up-content h2 {
     color: var(--color-gold);
     font-size: 1.5rem;
+    margin-bottom: var(--space-sm);
+}
+
+.level-up-skill {
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    color: var(--color-text-secondary);
     margin-bottom: var(--space-sm);
 }
 
@@ -73,6 +87,18 @@
     font-weight: 700;
     color: var(--color-gold);
     margin: var(--space-md) 0;
+}
+
+.level-up-xp {
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    color: var(--color-green);
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+}
+
+.level-up-close {
+    margin-top: var(--space-sm);
 }
 
 /* --- Scroll Reveal --- */
@@ -146,7 +172,7 @@
 }
 
 .xp-float {
-    position: absolute;
+    position: fixed;
     font-family: var(--font-heading);
     font-weight: 700;
     color: var(--color-green);

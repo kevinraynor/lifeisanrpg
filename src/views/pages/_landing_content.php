@@ -68,3 +68,30 @@
     <p>Small steps. Real progress. Begin your adventure now.</p>
     <a href="/register" class="btn-fantasy btn-primary btn-large">Create Account</a>
 </section>
+
+<!-- Login Modal -->
+<div class="modal-overlay" id="login-modal">
+    <div class="modal card-ornate">
+        <button class="modal-close" id="login-modal-close">&times;</button>
+        <h2>Welcome Back</h2>
+        <p class="modal-subtitle">Continue your adventure</p>
+        <form id="login-form" class="auth-form">
+            <div class="form-group">
+                <label class="form-label" for="login-email">Email</label>
+                <input class="form-input" type="email" id="login-email" placeholder="adventurer@example.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="login-password">Password</label>
+                <input class="form-input" type="password" id="login-password" placeholder="Enter your password" required>
+            </div>
+            <div class="form-error" id="login-error"></div>
+            <button type="submit" class="btn-fantasy btn-primary btn-large" style="width:100%">Log In</button>
+        </form>
+        <p class="modal-footer-text">Don't have an account? <a href="/register">Start your journey</a></p>
+    </div>
+</div>
+
+<script>
+    window.__CSRF_TOKEN__ = <?= json_encode(csrf_token()) ?>;
+</script>
+<script type="module" src="/js/pages/landing.js"></script>
