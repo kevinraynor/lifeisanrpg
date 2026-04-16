@@ -167,11 +167,15 @@ function renderStep2() {
         const isSelected = state.classId === c.id;
         return `
             <div class="class-card ${isSelected ? 'selected' : ''}" data-class-id="${c.id}">
-                <div class="class-card__img" style="background-color: ${c.color}20; border-color: ${c.color}">
-                    <span class="class-card__icon" style="color: ${c.color}">&#9876;</span>
+                <div class="class-card__body">
+                    <h3 class="class-card__name" style="color: ${c.color}">${escapeHtml(c.name)}</h3>
+                    <p class="class-card__desc">${escapeHtml(c.description).substring(0, 120)}...</p>
                 </div>
-                <h3 class="class-card__name" style="color: ${c.color}">${escapeHtml(c.name)}</h3>
-                <p class="class-card__desc">${escapeHtml(c.description).substring(0, 120)}...</p>
+                <div class="class-card__img" style="border-color: ${c.color}">
+                    ${imgUrl
+                        ? `<img src="${imgUrl}" alt="${escapeHtml(c.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="class-card__icon" style="color: ${c.color}; display:none">&#9876;</span>`
+                        : `<span class="class-card__icon" style="color: ${c.color}">&#9876;</span>`}
+                </div>
             </div>
         `;
     }).join('');

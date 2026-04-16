@@ -65,31 +65,31 @@ export function renderCharacterCard({ character, skills = [], attributeScores = 
 
     return `
         <div class="character-card">
-            <div class="character-card__header">
-                <div class="character-card__avatar" style="border-color: ${character.class_color || '#8b7355'}">
-                    ${imgUrl
-                        ? `<img src="${imgUrl}" alt="${character.class_name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="avatar-placeholder" style="display:none">&#9876;</div>`
-                        : '<div class="avatar-placeholder">&#9876;</div>'}
+            ${imgUrl ? `<div class="character-card__portrait">
+                <img src="${imgUrl}" alt="${character.class_name}" onerror="this.parentElement.style.display='none'">
+            </div>` : ''}
+            <div class="character-card__body">
+                <div class="character-card__header">
+                    <div class="character-card__info">
+                        <h3 class="character-card__name">${escapeHtml(character.name)}</h3>
+                        <p class="character-card__class" style="color: ${character.class_color || 'inherit'}">
+                            Level ${overallLevel} &middot; ${escapeHtml(character.class_name || 'Adventurer')}
+                        </p>
+                    </div>
                 </div>
-                <div class="character-card__info">
-                    <h3 class="character-card__name">${escapeHtml(character.name)}</h3>
-                    <p class="character-card__class" style="color: ${character.class_color || 'inherit'}">
-                        Level ${overallLevel} &middot; ${escapeHtml(character.class_name || 'Adventurer')}
-                    </p>
-                </div>
-            </div>
 
-            <div class="character-card__stats">
-                <h4>Attributes</h4>
-                ${attrHTML}
-            </div>
-
-            ${topSkills.length > 0 ? `
-                <div class="character-card__skills">
-                    <h4>Top Skills</h4>
-                    ${skillsHTML}
+                <div class="character-card__stats">
+                    <h4>Attributes</h4>
+                    ${attrHTML}
                 </div>
-            ` : ''}
+
+                ${topSkills.length > 0 ? `
+                    <div class="character-card__skills">
+                        <h4>Top Skills</h4>
+                        ${skillsHTML}
+                    </div>
+                ` : ''}
+            </div>
         </div>
     `;
 }

@@ -88,6 +88,9 @@ $userData = [
                 <a href="/app/attributes" class="sidebar-link" data-page="attributes">
                     <span class="sidebar-icon">&#128200;</span> Attributes
                 </a>
+                <a href="/app/tree" class="sidebar-link" data-page="tree">
+                    <span class="sidebar-icon">&#127795;</span> Skill Tree
+                </a>
                 <a href="/app/quests" class="sidebar-link" data-page="quests">
                     <span class="sidebar-icon">&#128220;</span> Quests
                 </a>

@@ -12,6 +12,7 @@ import { renderSkillDetail } from './pages/skill-detail.js';
 import { renderQuests } from './pages/quests.js';
 import { renderFriends } from './pages/friends.js';
 import { renderGuild } from './pages/guild.js';
+import { renderSkillTree } from './pages/skill-tree.js';
 import { loadActivityFeed } from './components/social-feed.js';
 
 // Initialize store from inline JSON
@@ -25,13 +26,14 @@ Router.on('attributes', (el) => renderAttributes(el));
 Router.on('quests', (el) => renderQuests(el));
 Router.on('friends', (el) => renderFriends(el));
 Router.on('guild', (el) => renderGuild(el));
+Router.on('tree', (el) => renderSkillTree(el));
 
-// Skill detail: /app/skill/{id}
+// Skill detail: /app/skill/{slug}
 Router.on('skill', (el) => {
     const segments = window.location.pathname.replace(/^\/app\/?/, '').split('/').filter(Boolean);
-    const skillId = segments[1];
-    if (skillId) {
-        renderSkillDetail(el, skillId);
+    const skillSlug = segments[1];
+    if (skillSlug) {
+        renderSkillDetail(el, skillSlug);
     } else {
         el.innerHTML = '<p>Skill not found.</p>';
     }

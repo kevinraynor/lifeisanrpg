@@ -179,6 +179,37 @@ $router->post('/api/auth/logout', function () {
     json_response(['success' => true]);
 });
 
+// Change password
+$router->post('/api/auth/change-password', function () {
+    requireAuth();
+    if (!validate_csrf()) json_error('Invalid CSRF token', 403);
+
+    $data = get_json_body();
+    $currentPassword = $data['current_password'] ?? '';
+    $newPassword = $data['new_password'] ?? '';
+
+    if (!$currentPassword || !$newPassword) {
+        json_error('Current and new passwords are required');
+    }
+    if (strlen($newPassword) < 8) {
+        json_error('New password must be at least 8 characters');
+    }
+
+    $db = Database::getInstance();
+    $stmt = $db->prepare('SELECT password_hash FROM users WHERE id = ?');
+    $stmt->execute([current_user_id()]);
+    $user = $stmt->fetch();
+
+    if (!$user || !password_verify($currentPassword, $user['password_hash'])) {
+        json_error('Current password is incorrect', 401);
+    }
+
+    $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+    $db->prepare('UPDATE users SET password_hash = ? WHERE id = ?')->execute([$newHash, current_user_id()]);
+
+    json_response(['success' => true]);
+});
+
 // Get current user info
 $router->get('/api/auth/me', function () {
     if (!is_logged_in()) {

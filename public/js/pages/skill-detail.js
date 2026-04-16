@@ -5,12 +5,18 @@ import Store from '../store.js';
 import { get } from '../api.js';
 import { renderProgressBar } from '../components/progress-bar.js';
 
-export async function renderSkillDetail(container, skillId) {
+export async function renderSkillDetail(container, skillSlug) {
     container.innerHTML = '<p>Loading skill details...</p>';
 
     try {
-        const skill = await get(`/api/skills/${skillId}`);
-        const userSkill = Store.getUserSkill(skillId);
+        // Accept slug (string) or legacy numeric id
+        const endpoint = /^\d+$/.test(skillSlug)
+            ? `/api/skills/${skillSlug}`
+            : `/api/skills/by-slug/${skillSlug}`;
+        const skill = await get(endpoint);
+        // Support lookup by either slug or id for userSkill
+        const userSkill = Store.getUserSkill(skill.id) || Store.getUserSkill(skillSlug);
+        const skillId = skill.id;
         const level = userSkill ? parseInt(userSkill.current_level) || 0 : null;
         const totalXP = userSkill ? parseInt(userSkill.total_xp) || 0 : 0;
         const maxLevel = parseInt(skill.max_level) || 250;

@@ -89,6 +89,25 @@ $router->get('/app', function () {
     render('pages/app');
 }, ['requireAuth']);
 
+// Public skills pages (SEO-friendly, Google-indexable)
+$router->get('/skills', function () {
+    render('pages/skills');
+});
+
+$router->get('/skills/{slug}', function (string $slug) {
+    render('pages/skill-detail', ['slug' => $slug]);
+});
+
+// Sitemap
+$router->get('/sitemap.xml', function () {
+    render('pages/sitemap');
+});
+
+// Shareable character card (public, no auth required)
+$router->get('/share/{id}', function (string $id) {
+    render('pages/share', ['character_id' => (int) $id]);
+});
+
 // Admin panel
 $router->get('/admin/*', function () {
     render('pages/admin/index');

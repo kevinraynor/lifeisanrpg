@@ -9,10 +9,18 @@ let overlay = null;
  * @param {string} skillName - Name of the skill that leveled up
  * @param {number} newLevel - The new level reached
  * @param {number} xpEarned - XP earned this session
+ * @param {Object} attrDiff - Map of attribute name → points gained (optional)
  */
-export function showLevelUp(skillName, newLevel, xpEarned) {
+export function showLevelUp(skillName, newLevel, xpEarned, attrDiff = {}) {
     // Remove existing overlay if any
     if (overlay) overlay.remove();
+
+    const attrChanges = Object.entries(attrDiff).filter(([, v]) => v > 0.01);
+    const attrsHTML = attrChanges.length > 0
+        ? `<div class="level-up-attrs">${attrChanges.map(([name, val]) =>
+            `<span class="level-up-attr">▲ ${name} +${Math.round(val)}</span>`
+          ).join('')}</div>`
+        : '';
 
     overlay = document.createElement('div');
     overlay.className = 'level-up-overlay';
@@ -23,6 +31,7 @@ export function showLevelUp(skillName, newLevel, xpEarned) {
             <p class="level-up-skill">${escapeHtml(skillName)}</p>
             <div class="level-number">${newLevel}</div>
             <p class="level-up-xp">+${xpEarned.toLocaleString()} XP</p>
+            ${attrsHTML}
             <button class="btn-fantasy btn-primary level-up-close">Continue</button>
         </div>
     `;

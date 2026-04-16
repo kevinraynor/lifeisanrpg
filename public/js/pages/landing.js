@@ -72,7 +72,7 @@ if (loginForm) {
 }
 
 // --- Scroll Reveal ---
-const reveals = document.querySelectorAll('.features-overview, .feature-item, .cta-section');
+const reveals = document.querySelectorAll('.features-overview, .feature-item, .cta-section, .features-overview--alt');
 reveals.forEach(el => el.classList.add('scroll-reveal'));
 
 const observer = new IntersectionObserver((entries) => {

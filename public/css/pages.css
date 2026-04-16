@@ -146,6 +146,69 @@
     margin-bottom: var(--space-md);
 }
 
+/* --- Account Page --- */
+.account-card {
+    max-width: 500px;
+    padding: var(--space-xl);
+    margin-bottom: var(--space-lg);
+}
+
+.account-card h2 {
+    margin-bottom: var(--space-lg);
+}
+
+.account-card h3 {
+    margin-bottom: var(--space-lg);
+}
+
+.account-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.account-row {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-sm) 0;
+    border-bottom: var(--border-card-light);
+}
+
+.account-row:last-child {
+    border-bottom: none;
+}
+
+.account-label {
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.account-value {
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+}
+
+.account-form .form-group {
+    margin-bottom: var(--space-md);
+}
+
+/* --- Features Alt Section --- */
+.features-overview--alt {
+    background: var(--color-bg-secondary);
+    text-align: center;
+    padding: var(--space-3xl) var(--space-lg);
+    margin: 0 calc(-50vw + 50%);
+    padding-left: calc(50vw - 50%);
+    padding-right: calc(50vw - 50%);
+}
+
+.features-overview--alt .features-grid {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
 /* --- Registration Wizard --- */
 .register-wizard {
     max-width: var(--max-content-width);
@@ -154,7 +217,7 @@
 }
 
 .wizard-container {
-    max-width: 800px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
@@ -179,6 +242,16 @@
 }
 
 @media (max-width: 768px) {
+    .character-card {
+        flex-direction: column;
+        max-width: 340px;
+    }
+
+    .character-card__portrait {
+        width: 100%;
+        height: 240px;
+    }
+
     .hero {
         grid-template-columns: 1fr;
         text-align: center;

@@ -13,6 +13,48 @@ $router->get('/api/skills', function () {
     json_response($skills);
 });
 
+// Get single skill by slug (for public and in-app slug-based URLs)
+$router->get('/api/skills/by-slug/{slug}', function (string $slug) {
+    $db = Database::getInstance();
+    $stmt = $db->prepare('
+        SELECT s.*, sc.body_markdown, sc.celebrities, sc.resources, sc.tips
+        FROM skills s
+        LEFT JOIN skill_content sc ON sc.skill_id = s.id
+        WHERE s.slug = ? AND s.is_active = 1
+    ');
+    $stmt->execute([$slug]);
+    $skill = $stmt->fetch();
+
+    if (!$skill) {
+        json_error('Skill not found', 404);
+    }
+
+    $skill['celebrities'] = json_decode($skill['celebrities'] ?? 'null', true);
+    $skill['resources']   = json_decode($skill['resources']   ?? 'null', true);
+    $skill['tips']        = json_decode($skill['tips']        ?? 'null', true);
+
+    $stmt = $db->prepare('
+        SELECT sam.attribute_id, a.name as attribute_name, a.slug as attribute_slug, sam.ratio
+        FROM skill_attribute_map sam
+        JOIN attributes a ON a.id = sam.attribute_id
+        WHERE sam.skill_id = ?
+        ORDER BY sam.ratio DESC
+    ');
+    $stmt->execute([(int) $skill['id']]);
+    $skill['attributes'] = $stmt->fetchAll();
+
+    $stmt = $db->prepare('
+        SELECT sp.required_skill_id, s2.name as required_skill_name, sp.required_level
+        FROM skill_prerequisites sp
+        JOIN skills s2 ON s2.id = sp.required_skill_id
+        WHERE sp.skill_id = ?
+    ');
+    $stmt->execute([(int) $skill['id']]);
+    $skill['prerequisites'] = $stmt->fetchAll();
+
+    json_response($skill);
+});
+
 // Get single skill with extended content
 $router->get('/api/skills/{id}', function (string $id) {
     $db = Database::getInstance();

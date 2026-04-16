@@ -15,11 +15,22 @@ export async function loadActivityFeed() {
         const activities = await get('/api/feed');
 
         if (!activities || activities.length === 0) {
-            container.innerHTML = '<p class="feed-empty">No activity yet. Start logging progress to see updates here!</p>';
+            container.innerHTML = '<p class="feed-empty">No activity today yet. Start logging some hours!</p>';
             return;
         }
 
-        container.innerHTML = activities.slice(0, 20).map(a => {
+        // Filter to today only
+        const todayStr = new Date().toLocaleDateString();
+        const todayActivities = activities.filter(a => {
+            return new Date(a.logged_at).toLocaleDateString() === todayStr;
+        });
+
+        if (todayActivities.length === 0) {
+            container.innerHTML = '<p class="feed-empty">No activity today yet. Start logging some hours!</p>';
+            return;
+        }
+
+        container.innerHTML = todayActivities.slice(0, 20).map(a => {
             const leveledUp = a.level_after > a.level_before;
             const timeAgo = formatTimeAgo(new Date(a.logged_at));
 

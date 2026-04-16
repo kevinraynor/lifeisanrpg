@@ -87,7 +87,7 @@ export function renderExplore(container) {
 
             return `
                 <div class="explore-skill-card ${activated ? 'activated' : ''} ${!available && !activated ? 'locked' : ''}"
-                     data-skill-id="${s.id}">
+                     data-skill-id="${s.id}" data-skill-slug="${s.slug || ''}" style="cursor:pointer">
                     <div class="explore-skill-header">
                         <span class="explore-skill-name">${escapeHtml(s.name)}</span>
                         <span class="explore-skill-cat">${s.category || ''}</span>
@@ -108,6 +108,18 @@ export function renderExplore(container) {
                 </div>
             `;
         }).join('');
+
+        // Navigate to skill detail on card click (not on button click)
+        grid.querySelectorAll('.explore-skill-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.activate-btn')) return; // let activate button handle itself
+                const slug = card.dataset.skillSlug;
+                if (slug) {
+                    history.pushState({}, '', `/app/skill/${slug}`);
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                }
+            });
+        });
 
         // Attach activate handlers
         grid.querySelectorAll('.activate-btn').forEach(btn => {

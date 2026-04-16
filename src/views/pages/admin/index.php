@@ -1,7 +1,10 @@
 <?php
 /**
  * Admin panel SPA shell.
+ * Pre-loads attributes (for skill-attribute mapping editor).
  */
+$db = Database::getInstance();
+$allAttributes = $db->query('SELECT * FROM attributes ORDER BY sort_order')->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,6 +16,7 @@
     <link rel="stylesheet" href="/css/layout.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/pages.css">
+    <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body class="admin-body">
     <header class="site-header admin-header">
@@ -31,21 +35,31 @@
     <div class="admin-layout">
         <aside class="admin-sidebar">
             <nav class="sidebar-nav">
-                <a href="/admin" class="sidebar-link active" data-page="overview">Overview</a>
-                <a href="/admin/skills" class="sidebar-link" data-page="skills">Skills</a>
-                <a href="/admin/users" class="sidebar-link" data-page="users">Users</a>
-                <a href="/admin/classes" class="sidebar-link" data-page="classes">Classes</a>
+                <a href="/admin" class="sidebar-link active" data-page="overview">
+                    <span class="sidebar-icon">&#128200;</span> Overview
+                </a>
+                <a href="/admin/skills" class="sidebar-link" data-page="skills">
+                    <span class="sidebar-icon">&#9733;</span> Skills
+                </a>
+                <a href="/admin/users" class="sidebar-link" data-page="users">
+                    <span class="sidebar-icon">&#128101;</span> Users
+                </a>
+                <a href="/admin/classes" class="sidebar-link" data-page="classes">
+                    <span class="sidebar-icon">&#127984;</span> Classes
+                </a>
             </nav>
         </aside>
 
         <main class="admin-main" id="admin-main">
-            <h1>Admin Dashboard</h1>
-            <p>Welcome to the admin panel.</p>
+            <p>Loading...</p>
         </main>
     </div>
 
     <script>
-        window.__CSRF_TOKEN__ = <?= json_encode(csrf_token()) ?>;
+        window.__ADMIN_DATA__ = <?= json_encode([
+            'attributes' => $allAttributes,
+            'csrfToken'  => csrf_token(),
+        ], JSON_UNESCAPED_UNICODE) ?>;
     </script>
     <script type="module" src="/js/admin/admin-app.js"></script>
 </body>
