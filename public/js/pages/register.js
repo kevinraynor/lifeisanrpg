@@ -7,6 +7,7 @@
  * Step 4: Email + password
  */
 import { post, get, setCsrfToken } from '../api.js';
+import { openSkillExperienceModal } from '../components/skill-experience-modal.js';
 
 const data = window.__REGISTER_DATA__;
 if (!data) throw new Error('Registration data not loaded');
@@ -22,6 +23,7 @@ const stepsEl = document.querySelectorAll('.wizard-step');
 const state = {
     step: 1,
     characterName: '',
+    age: null,
     gender: 'male',
     classId: null,
     selectedClass: null,
@@ -78,6 +80,13 @@ function renderStep1() {
             </div>
 
             <div class="form-group">
+                <label class="form-label" for="char-age">Age</label>
+                <input class="form-input" type="number" id="char-age" min="13" max="120" step="1"
+                       placeholder="Your real-world age" value="${state.age ?? ''}">
+                <div class="form-hint" id="age-status">We use this to sanity-check your experience estimates.</div>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">Gender</label>
                 <div class="gender-toggle">
                     <button type="button" class="gender-btn ${state.gender === 'male' ? 'active' : ''}" data-gender="male">
@@ -98,8 +107,36 @@ function renderStep1() {
 
     const nameInput = document.getElementById('char-name');
     const nameStatus = document.getElementById('name-status');
+    const ageInput = document.getElementById('char-age');
+    const ageStatus = document.getElementById('age-status');
     const nextBtn = document.getElementById('step1-next');
     let nameTimer = null;
+    let nameOk = false;
+
+    function ageOk() {
+        const a = parseInt(ageInput.value, 10);
+        return !isNaN(a) && a >= 13 && a <= 120;
+    }
+    function refreshNext() {
+        nextBtn.disabled = !(nameOk && ageOk());
+    }
+    ageInput.addEventListener('input', () => {
+        const a = parseInt(ageInput.value, 10);
+        if (isNaN(a)) {
+            state.age = null;
+            ageStatus.textContent = 'Enter your age (13-120).';
+            ageStatus.className = 'form-hint';
+        } else if (a < 13 || a > 120) {
+            state.age = null;
+            ageStatus.textContent = 'Age must be between 13 and 120.';
+            ageStatus.className = 'form-hint error';
+        } else {
+            state.age = a;
+            ageStatus.textContent = 'Thanks! This helps keep skill estimates realistic.';
+            ageStatus.className = 'form-hint success';
+        }
+        refreshNext();
+    });
 
     // Name validation with debounced uniqueness check
     nameInput.addEventListener('input', () => {
@@ -110,14 +147,14 @@ function renderStep1() {
         if (name.length < 3) {
             nameStatus.textContent = name.length > 0 ? 'Name must be at least 3 characters' : '';
             nameStatus.className = 'form-hint error';
-            nextBtn.disabled = true;
+            nameOk = false; refreshNext();
             return;
         }
 
         if (!/^[a-zA-Z0-9 _-]+$/.test(name)) {
             nameStatus.textContent = 'Only letters, numbers, spaces, hyphens, and underscores';
             nameStatus.className = 'form-hint error';
-            nextBtn.disabled = true;
+            nameOk = false; refreshNext();
             return;
         }
 
@@ -130,11 +167,11 @@ function renderStep1() {
                 if (result.available) {
                     nameStatus.textContent = 'Name is available!';
                     nameStatus.className = 'form-hint success';
-                    nextBtn.disabled = false;
+                    nameOk = true; refreshNext();
                 } else {
                     nameStatus.textContent = result.reason || 'Name is already taken';
                     nameStatus.className = 'form-hint error';
-                    nextBtn.disabled = true;
+                    nameOk = false; refreshNext();
                 }
             } catch {
                 nameStatus.textContent = 'Could not check name';
@@ -146,6 +183,9 @@ function renderStep1() {
     // If name was already entered (going back), validate it
     if (state.characterName.length >= 3) {
         nameInput.dispatchEvent(new Event('input'));
+    }
+    if (state.age != null) {
+        ageInput.dispatchEvent(new Event('input'));
     }
 
     // Gender toggle
@@ -231,43 +271,59 @@ function renderStep3() {
         });
     }
 
-    // Group skills by category
     const categories = ['physical', 'mental', 'creative', 'technical', 'practical', 'knowledge', 'social'];
     const categoryLabels = {
         physical: 'Physical', mental: 'Mental', creative: 'Creative',
         technical: 'Technical', practical: 'Practical', knowledge: 'Knowledge', social: 'Social',
     };
 
+    // Build category HTML — all start collapsed
     let skillsHTML = '';
     for (const cat of categories) {
         const catSkills = skills.filter(s => s.category === cat);
-        skillsHTML += `<div class="skill-category">
-            <h3 class="skill-category__title">${categoryLabels[cat]}</h3>
-            <div class="skill-checklist">`;
+        if (catSkills.length === 0) continue;
 
+        const hasSuggested = catSkills.some(s => suggestedIds.includes(s.id));
+        const selectedInCat = catSkills.filter(s => state.selectedSkills.some(sel => sel.skill_id === s.id)).length;
+
+        let rowsHTML = '';
         for (const skill of catSkills) {
             const isSelected = state.selectedSkills.some(s => s.skill_id === skill.id);
             const existing = state.selectedSkills.find(s => s.skill_id === skill.id);
-            const hours = existing?.initial_hours || 0;
-            const xp = hoursToXP(hours, parseFloat(skill.xp_multiplier));
-            const level = xpToLevel(xp, parseInt(skill.max_level));
+            const hasHours = (existing?.initial_hours || 0) > 0;
             const isSuggested = suggestedIds.includes(skill.id);
 
-            skillsHTML += `
-                <div class="skill-check-row ${isSelected ? 'checked' : ''} ${isSuggested ? 'suggested' : ''}" data-skill-id="${skill.id}">
+            rowsHTML += `
+                <div class="skill-check-row ${isSelected ? 'checked' : ''} ${isSuggested ? 'suggested' : ''}" data-skill-id="${skill.id}" data-skill-name="${escapeHtml(skill.name.toLowerCase())}">
                     <label class="skill-check-label">
                         <input type="checkbox" class="skill-checkbox" data-skill-id="${skill.id}" ${isSelected ? 'checked' : ''}>
                         <span class="skill-check-name">${escapeHtml(skill.name)}</span>
                         ${isSuggested ? '<span class="badge-suggested">Suggested</span>' : ''}
                     </label>
                     <div class="skill-hours-input ${isSelected ? '' : 'hidden'}">
-                        <input type="number" class="form-input form-input--small hours-input" data-skill-id="${skill.id}"
-                               min="0" max="10000" step="1" value="${hours}" placeholder="Hours">
-                        <span class="skill-level-preview">Lv. ${level}</span>
+                        <span class="skill-xp-status" data-xp-for="${skill.id}">${hasHours ? '&#10022; Chronicles sealed' : ''}</span>
+                        <button type="button" class="btn-fantasy btn-secondary btn-small btn-select-xp" data-skill-id="${skill.id}">
+                            ${hasHours ? 'Edit experience' : 'Select experience'}
+                        </button>
                     </div>
                 </div>`;
         }
-        skillsHTML += `</div></div>`;
+
+        skillsHTML += `
+            <div class="skill-category" data-cat="${cat}">
+                <div class="skill-category__header" role="button" tabindex="0" aria-expanded="false">
+                    <div class="skill-category__title-row">
+                        <h3 class="skill-category__title">${categoryLabels[cat]}
+                            ${hasSuggested ? '<span class="cat-suggested-tag">&#10022; Suggested</span>' : ''}
+                        </h3>
+                        <span class="cat-sel-count" id="cat-count-${cat}">${selectedInCat > 0 ? `${selectedInCat} selected` : ''}</span>
+                    </div>
+                    <span class="cat-toggle-icon">&#9656;</span>
+                </div>
+                <div class="skill-category__body" hidden>
+                    <div class="skill-checklist">${rowsHTML}</div>
+                </div>
+            </div>`;
     }
 
     const selectedCount = state.selectedSkills.length;
@@ -275,8 +331,12 @@ function renderStep3() {
     container.innerHTML = `
         <div class="wizard-panel fade-in">
             <h2>Pick Your Starting Skills</h2>
-            <p class="wizard-desc">Select at least 5 skills you want to develop. For each, optionally enter how many hours you've already spent on it.</p>
+            <p class="wizard-desc">Select at least 5 skills. Expand categories to browse, or use search. Use "Select experience" to log prior hours once checked.</p>
             <p class="wizard-count">Selected: <strong id="skill-count">${selectedCount}</strong> / 5 minimum</p>
+
+            <div class="skills-search-bar">
+                <input type="text" id="skills-search" class="form-input" placeholder="Search skills...">
+            </div>
 
             <div class="skills-selection">${skillsHTML}</div>
 
@@ -296,12 +356,73 @@ function renderStep3() {
         nextBtn.disabled = count < 5;
     }
 
+    function updateCatCount(cat) {
+        const catEl = container.querySelector(`[data-cat="${cat}"]`);
+        if (!catEl) return;
+        const total = catEl.querySelectorAll('.skill-check-row').length;
+        const sel = catEl.querySelectorAll('.skill-check-row.checked').length;
+        const countEl2 = catEl.querySelector('.cat-sel-count');
+        if (countEl2) countEl2.textContent = sel > 0 ? `${sel} selected` : '';
+    }
+
+    // Category header toggle
+    container.querySelectorAll('.skill-category__header').forEach(header => {
+        const toggle = () => {
+            const cat = header.closest('.skill-category');
+            const body = cat.querySelector('.skill-category__body');
+            const isOpen = !body.hidden;
+            body.hidden = isOpen;
+            header.setAttribute('aria-expanded', String(!isOpen));
+            cat.classList.toggle('open', !isOpen);
+        };
+        header.addEventListener('click', toggle);
+        header.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    });
+
+    // Search bar — filter rows, auto-expand/collapse categories
+    const searchInput = document.getElementById('skills-search');
+    searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+
+        container.querySelectorAll('.skill-category').forEach(catEl => {
+            const rows = catEl.querySelectorAll('.skill-check-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const name = row.dataset.skillName || '';
+                const match = !q || name.includes(q);
+                row.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
+            });
+
+            const body = catEl.querySelector('.skill-category__body');
+            const header = catEl.querySelector('.skill-category__header');
+            if (q) {
+                // Show/hide category based on whether it has matches
+                catEl.style.display = visibleCount > 0 ? '' : 'none';
+                if (visibleCount > 0) {
+                    body.hidden = false;
+                    header.setAttribute('aria-expanded', 'true');
+                    catEl.classList.add('open');
+                }
+            } else {
+                // Restore collapsed state
+                catEl.style.display = '';
+                body.hidden = true;
+                header.setAttribute('aria-expanded', 'false');
+                catEl.classList.remove('open');
+                rows.forEach(row => { row.style.display = ''; });
+            }
+        });
+    });
+
     // Checkbox handlers
     container.querySelectorAll('.skill-checkbox').forEach(cb => {
         cb.addEventListener('change', () => {
             const skillId = parseInt(cb.dataset.skillId);
             const row = cb.closest('.skill-check-row');
             const hoursDiv = row.querySelector('.skill-hours-input');
+            const cat = row.closest('.skill-category').dataset.cat;
 
             if (cb.checked) {
                 row.classList.add('checked');
@@ -315,23 +436,30 @@ function renderStep3() {
                 state.selectedSkills = state.selectedSkills.filter(s => s.skill_id !== skillId);
             }
             updateCount();
+            updateCatCount(cat);
         });
     });
 
-    // Hours input handlers
-    container.querySelectorAll('.hours-input').forEach(input => {
-        input.addEventListener('input', () => {
-            const skillId = parseInt(input.dataset.skillId);
-            const hours = Math.max(0, Math.min(10000, parseFloat(input.value) || 0));
+    // Select-experience button handlers
+    container.querySelectorAll('.btn-select-xp').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const skillId = parseInt(btn.dataset.skillId);
             const skill = skills.find(s => s.id === skillId);
-            const xp = hoursToXP(hours, parseFloat(skill?.xp_multiplier || 1));
-            const level = xpToLevel(xp, parseInt(skill?.max_level || 250));
-
-            const preview = input.closest('.skill-hours-input').querySelector('.skill-level-preview');
-            preview.textContent = `Lv. ${level}`;
-
+            if (!skill) return;
             const existing = state.selectedSkills.find(s => s.skill_id === skillId);
-            if (existing) existing.initial_hours = hours;
+            openSkillExperienceModal({
+                skillName: skill.name,
+                xpMultiplier: parseFloat(skill.xp_multiplier) || 1,
+                maxLevel: parseInt(skill.max_level) || 250,
+                age: state.age,
+                currentHours: existing?.initial_hours || 0,
+                onSave: (hours) => {
+                    if (existing) existing.initial_hours = hours;
+                    const statusEl = container.querySelector(`[data-xp-for="${skillId}"]`);
+                    if (statusEl) statusEl.innerHTML = hours > 0 ? '&#10022; Chronicles sealed' : '';
+                    btn.textContent = hours > 0 ? 'Edit experience' : 'Select experience';
+                },
+            });
         });
     });
 
@@ -350,6 +478,7 @@ function renderStep4() {
             <div class="wizard-summary card-ornate">
                 <h3>Character Summary</h3>
                 <p><strong>Name:</strong> ${escapeHtml(state.characterName)}</p>
+                ${state.age ? `<p><strong>Age:</strong> ${state.age}</p>` : ''}
                 <p><strong>Gender:</strong> ${state.gender.charAt(0).toUpperCase() + state.gender.slice(1)}</p>
                 <p><strong>Class:</strong> ${escapeHtml(state.selectedClass?.name || 'None')}</p>
                 <p><strong>Skills:</strong> ${state.selectedSkills.length} selected</p>
@@ -403,6 +532,7 @@ function renderStep4() {
         try {
             const result = await post('/api/auth/register', {
                 character_name: state.characterName,
+                age: state.age,
                 gender: state.gender,
                 class_id: state.classId,
                 starting_skills: state.selectedSkills.map(s => ({

@@ -53,20 +53,23 @@ $categories = ['Physical', 'Mental', 'Creative', 'Technical', 'Practical', 'Know
            class="explore-skill-card"
            data-category="<?= h($catLower) ?>"
            data-name="<?= h(strtolower($skill['name'])) ?>"
-           style="cursor: pointer; text-decoration: none; color: inherit; display: flex; flex-direction: column;">
+           style="cursor: pointer; text-decoration: none; color: inherit;">
 
-            <div class="explore-skill-header">
-                <span class="explore-skill-name"><?= h($skill['name']) ?></span>
-                <span class="explore-skill-cat"><?= h($skill['category'] ?? '') ?></span>
-            </div>
+            <div class="skill-icon skill-icon--placeholder" aria-hidden="true">&#9876;</div>
+            <div class="explore-skill-card__content">
+                <div class="explore-skill-header">
+                    <span class="explore-skill-name"><?= h($skill['name']) ?></span>
+                    <span class="explore-skill-cat"><?= h($skill['category'] ?? '') ?></span>
+                </div>
 
-            <p class="explore-skill-desc"><?= h($truncated) ?></p>
+                <p class="explore-skill-desc"><?= h($truncated) ?></p>
 
-            <div class="explore-skill-meta">
-                <span>Max Lv. <?= (int)$skill['max_level'] ?></span>
-                <?php if ((float)$skill['xp_multiplier'] !== 1.0): ?>
-                    <span><?= h(number_format((float)$skill['xp_multiplier'], 1)) ?>x XP</span>
-                <?php endif; ?>
+                <div class="explore-skill-meta">
+                    <span>Max Lv. <?= (int)$skill['max_level'] ?></span>
+                    <?php if ((float)$skill['xp_multiplier'] !== 1.0): ?>
+                        <span><?= h(number_format((float)$skill['xp_multiplier'], 1)) ?>x XP</span>
+                    <?php endif; ?>
+                </div>
             </div>
 
         </a>

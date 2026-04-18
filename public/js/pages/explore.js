@@ -88,22 +88,25 @@ export function renderExplore(container) {
             return `
                 <div class="explore-skill-card ${activated ? 'activated' : ''} ${!available && !activated ? 'locked' : ''}"
                      data-skill-id="${s.id}" data-skill-slug="${s.slug || ''}" style="cursor:pointer">
-                    <div class="explore-skill-header">
-                        <span class="explore-skill-name">${escapeHtml(s.name)}</span>
-                        <span class="explore-skill-cat">${s.category || ''}</span>
-                    </div>
-                    <p class="explore-skill-desc">${escapeHtml(s.description || '')}</p>
-                    <div class="explore-skill-meta">
-                        <span>Max Lv. ${s.max_level}</span>
-                        ${parseFloat(s.xp_multiplier) !== 1 ? `<span>XP &times;${s.xp_multiplier}</span>` : ''}
-                    </div>
-                    ${prereqText ? `<div class="explore-skill-prereq">Requires: ${escapeHtml(prereqText)}</div>` : ''}
-                    <div class="explore-skill-action">
-                        ${activated
-                            ? '<span class="badge-activated">Active</span>'
-                            : available
-                                ? `<button class="btn-fantasy btn-small btn-primary activate-btn" data-skill-id="${s.id}">Activate</button>`
-                                : '<span class="badge-locked">Locked</span>'}
+                    <div class="skill-icon skill-icon--placeholder" aria-hidden="true">&#9876;</div>
+                    <div class="explore-skill-card__content">
+                        <div class="explore-skill-header">
+                            <span class="explore-skill-name">${escapeHtml(s.name)}</span>
+                            <span class="explore-skill-cat">${s.category || ''}</span>
+                        </div>
+                        <p class="explore-skill-desc">${escapeHtml(s.description || '')}</p>
+                        <div class="explore-skill-meta">
+                            <span>Max Lv. ${s.max_level}</span>
+                            ${parseFloat(s.xp_multiplier) !== 1 ? `<span>XP &times;${s.xp_multiplier}</span>` : ''}
+                        </div>
+                        ${prereqText ? `<div class="explore-skill-prereq">Requires: ${escapeHtml(prereqText)}</div>` : ''}
+                        <div class="explore-skill-action">
+                            ${activated
+                                ? '<span class="badge-activated">Active</span>'
+                                : available
+                                    ? `<button class="btn-fantasy btn-small btn-primary activate-btn" data-skill-id="${s.id}">Activate</button>`
+                                    : '<span class="badge-locked">Locked</span>'}
+                        </div>
                     </div>
                 </div>
             `;
@@ -120,6 +123,8 @@ export function renderExplore(container) {
                 }
             });
         });
+
+        renderSuggested();
 
         // Attach activate handlers
         grid.querySelectorAll('.activate-btn').forEach(btn => {
@@ -144,6 +149,106 @@ export function renderExplore(container) {
                         category: skill.category,
                         activated_at: new Date().toISOString(),
                         last_logged: null,
+                    });
+                    renderSkills();
+                } catch (err) {
+                    alert(err.message || 'Could not activate skill');
+                    btn.disabled = false;
+                    btn.textContent = 'Activate';
+                }
+            });
+        });
+    }
+
+    function renderSuggested() {
+        const host = document.getElementById('explore-suggested');
+        if (!host) return;
+
+        // Need at least 3 activated skills with meaningful progress to suggest
+        const active = Store.userSkills.filter(us => (us.current_level || 0) > 0);
+        if (active.length < 3) { host.innerHTML = ''; return; }
+
+        // Top-3 attributes by score
+        const scored = Object.entries(Store.attributeScores || {})
+            .map(([id, v]) => ({ id: parseInt(id), score: v }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 3);
+        if (scored.length === 0) { host.innerHTML = ''; return; }
+
+        const rankWeight = [3, 2, 1];
+        const weights = {};
+        scored.forEach((a, i) => { weights[a.id] = rankWeight[i]; });
+
+        // Score each non-activated, available skill
+        const candidates = [];
+        for (const s of Store.allSkills) {
+            if (Store.isSkillActivated(s.id)) continue;
+            if (!Store.canActivateSkill(s.id).can) continue;
+            const maps = (Store.skillAttrMap || []).filter(m => m.skill_id == s.id);
+            if (maps.length === 0) continue;
+            let score = 0;
+            for (const m of maps) {
+                const w = weights[m.attribute_id];
+                if (w) score += parseFloat(m.ratio) * w;
+            }
+            if (score > 0) candidates.push({ skill: s, score });
+        }
+
+        candidates.sort((a, b) => b.score - a.score);
+        const top = candidates.slice(0, 6);
+        if (top.length < 3) { host.innerHTML = ''; return; }
+
+        const topAttrNames = scored
+            .map(a => Store.getAttributeById(a.id)?.name)
+            .filter(Boolean).join(', ');
+
+        host.innerHTML = `
+            <h3 class="suggested-title">Suggested for You</h3>
+            <p class="suggested-desc">Based on your strongest attributes: ${escapeHtml(topAttrNames)}</p>
+            <div class="suggested-grid">
+                ${top.map(({ skill: s }) => `
+                    <div class="explore-skill-card suggested" data-skill-id="${s.id}" data-skill-slug="${s.slug || ''}" style="cursor:pointer">
+                        <div class="skill-icon skill-icon--placeholder" aria-hidden="true">&#9876;</div>
+                        <div class="explore-skill-card__content">
+                            <div class="explore-skill-header">
+                                <span class="explore-skill-name">${escapeHtml(s.name)}</span>
+                                <span class="explore-skill-cat">${s.category || ''}</span>
+                            </div>
+                            <p class="explore-skill-desc">${escapeHtml(s.description || '')}</p>
+                            <div class="explore-skill-action">
+                                <button class="btn-fantasy btn-small btn-primary activate-btn" data-skill-id="${s.id}">Activate</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        host.querySelectorAll('.explore-skill-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.activate-btn')) return;
+                const slug = card.dataset.skillSlug;
+                if (slug) {
+                    history.pushState({}, '', `/app/skill/${slug}`);
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                }
+            });
+        });
+        host.querySelectorAll('.activate-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const skillId = parseInt(btn.dataset.skillId);
+                btn.disabled = true;
+                btn.textContent = '...';
+                try {
+                    await post(`/api/user/skills/${skillId}/activate`);
+                    const skill = Store.getSkillById(skillId);
+                    Store.addUserSkill({
+                        skill_id: skillId, total_xp: 0, current_level: 0,
+                        name: skill.name, slug: skill.slug, description: skill.description,
+                        icon: skill.icon, max_level: skill.max_level,
+                        xp_multiplier: skill.xp_multiplier, category: skill.category,
+                        activated_at: new Date().toISOString(), last_logged: null,
                     });
                     renderSkills();
                 } catch (err) {

@@ -54,6 +54,11 @@ $router->post('/api/auth/register', function () {
         json_error('Gender must be male or female');
     }
 
+    $age = isset($data['age']) ? (int) $data['age'] : null;
+    if ($age !== null && ($age < 13 || $age > 120)) {
+        json_error('Age must be between 13 and 120');
+    }
+
     $classId = (int) $data['class_id'];
     $startingSkills = $data['starting_skills'];
     if (!is_array($startingSkills) || count($startingSkills) < 5) {
@@ -93,8 +98,8 @@ $router->post('/api/auth/register', function () {
         $userId = (int) $db->lastInsertId();
 
         // Create character
-        $stmt = $db->prepare('INSERT INTO characters (user_id, name, gender, class_id) VALUES (?, ?, ?, ?)');
-        $stmt->execute([$userId, $characterName, $gender, $classId]);
+        $stmt = $db->prepare('INSERT INTO characters (user_id, name, age, gender, class_id) VALUES (?, ?, ?, ?, ?)');
+        $stmt->execute([$userId, $characterName, $age, $gender, $classId]);
 
         // Create user skills with initial hours
         $stmt = $db->prepare('INSERT INTO user_skills (user_id, skill_id, total_xp, current_level) VALUES (?, ?, ?, ?)');

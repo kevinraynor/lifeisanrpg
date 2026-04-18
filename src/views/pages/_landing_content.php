@@ -1,56 +1,56 @@
 <?php
 $demoCharacters = [
     [
-        'name' => 'Marcus the Warrior',
+        'name' => 'Marcus',
         'class' => 'Warrior', 'gender' => 'male', 'slug' => 'warrior',
         'color' => '#8B0000', 'level' => 38,
         'attrs' => ['Strength'=>28, 'Stamina'=>22, 'Dexterity'=>14, 'Intelligence'=>8, 'Wisdom'=>10, 'Creativity'=>6, 'Charisma'=>12],
         'skills' => [['name'=>'Weight Training','level'=>65,'pct'=>52],['name'=>'Running','level'=>48,'pct'=>38],['name'=>'Boxing','level'=>31,'pct'=>25]],
     ],
     [
-        'name' => 'Elena the Scholar',
+        'name' => 'Elena',
         'class' => 'Scholar', 'gender' => 'female', 'slug' => 'scholar',
         'color' => '#1B3A6B', 'level' => 45,
         'attrs' => ['Strength'=>5, 'Stamina'=>8, 'Dexterity'=>10, 'Intelligence'=>32, 'Wisdom'=>26, 'Creativity'=>18, 'Charisma'=>14],
         'skills' => [['name'=>'Mathematics','level'=>78,'pct'=>62],['name'=>'Physics','level'=>61,'pct'=>49],['name'=>'Research','level'=>52,'pct'=>42]],
     ],
     [
-        'name' => 'Garrett the Artisan',
+        'name' => 'Dev',
         'class' => 'Artisan', 'gender' => 'male', 'slug' => 'artisan',
         'color' => '#8B6914', 'level' => 41,
         'attrs' => ['Strength'=>18, 'Stamina'=>12, 'Dexterity'=>25, 'Intelligence'=>14, 'Wisdom'=>10, 'Creativity'=>30, 'Charisma'=>10],
         'skills' => [['name'=>'Woodworking','level'=>72,'pct'=>58],['name'=>'Metalworking','level'=>55,'pct'=>44],['name'=>'Drawing','level'=>40,'pct'=>32]],
     ],
     [
-        'name' => 'Lyra the Ranger',
+        'name' => 'Maya',
         'class' => 'Ranger', 'gender' => 'female', 'slug' => 'ranger',
         'color' => '#2D5A27', 'level' => 36,
         'attrs' => ['Strength'=>16, 'Stamina'=>20, 'Dexterity'=>22, 'Intelligence'=>12, 'Wisdom'=>18, 'Creativity'=>8, 'Charisma'=>10],
         'skills' => [['name'=>'Archery','level'=>60,'pct'=>48],['name'=>'Hiking','level'=>45,'pct'=>36],['name'=>'Survival Skills','level'=>38,'pct'=>30]],
     ],
     [
-        'name' => 'Sophia the Diplomat',
+        'name' => 'Priya',
         'class' => 'Diplomat', 'gender' => 'female', 'slug' => 'diplomat',
         'color' => '#6B3A8A', 'level' => 44,
         'attrs' => ['Strength'=>6, 'Stamina'=>8, 'Dexterity'=>10, 'Intelligence'=>20, 'Wisdom'=>22, 'Creativity'=>14, 'Charisma'=>32],
         'skills' => [['name'=>'Public Speaking','level'=>75,'pct'=>60],['name'=>'Negotiation','level'=>58,'pct'=>46],['name'=>'Writing','level'=>42,'pct'=>34]],
     ],
     [
-        'name' => 'Aldric the Sage',
+        'name' => 'Sam',
         'class' => 'Sage', 'gender' => 'male', 'slug' => 'sage',
         'color' => '#4A6B82', 'level' => 50,
         'attrs' => ['Strength'=>7, 'Stamina'=>10, 'Dexterity'=>8, 'Intelligence'=>28, 'Wisdom'=>35, 'Creativity'=>16, 'Charisma'=>18],
         'skills' => [['name'=>'Meditation','level'=>82,'pct'=>66],['name'=>'Philosophy','level'=>68,'pct'=>54],['name'=>'Yoga','level'=>50,'pct'=>40]],
     ],
     [
-        'name' => 'Arin the Tinkerer',
+        'name' => 'Alex',
         'class' => 'Tinkerer', 'gender' => 'male', 'slug' => 'tinkerer',
         'color' => '#5A5A5A', 'level' => 42,
         'attrs' => ['Strength'=>8, 'Stamina'=>12, 'Dexterity'=>15, 'Intelligence'=>24, 'Wisdom'=>18, 'Creativity'=>20, 'Charisma'=>10],
         'skills' => [['name'=>'Programming','level'=>79,'pct'=>68],['name'=>'Web Development','level'=>65,'pct'=>52],['name'=>'Mathematics','level'=>45,'pct'=>35]],
     ],
     [
-        'name' => 'Mira the Bard',
+        'name' => 'Lily',
         'class' => 'Bard', 'gender' => 'female', 'slug' => 'bard',
         'color' => '#8B4585', 'level' => 39,
         'attrs' => ['Strength'=>7, 'Stamina'=>10, 'Dexterity'=>18, 'Intelligence'=>14, 'Wisdom'=>12, 'Creativity'=>28, 'Charisma'=>26],
@@ -133,22 +133,24 @@ $imgPath = "/img/classes/{$demo['slug']}-{$demo['gender']}.webp";
 </section>
 
 <section class="features-overview features-overview--alt">
-    <h2>Built for Real Life</h2>
-    <div class="features-grid">
-        <div class="feature-item">
-            <div class="feature-icon">&#9733;</div>
-            <h3>100+ Skills</h3>
-            <p>From Fitness to Programming, Cooking to Creative Writing. Seven categories spanning physical, mental, creative, technical, practical, knowledge, and social skills.</p>
-        </div>
-        <div class="feature-item">
-            <div class="feature-icon">&#9670;</div>
-            <h3>7 Attributes</h3>
-            <p>Strength, Stamina, Dexterity, Intelligence, Wisdom, Creativity, and Charisma. Each skill contributes to attributes based on real-world mappings.</p>
-        </div>
-        <div class="feature-item">
-            <div class="feature-icon">&#127984;</div>
-            <h3>8 Classes</h3>
-            <p>Warrior, Scholar, Artisan, Ranger, Diplomat, Sage, Tinkerer, or Bard. Your class reflects your personality and suggests skills to get you started.</p>
+    <div class="features-inner">
+        <h2>Built for Real Life</h2>
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">&#9733;</div>
+                <h3>100+ Skills</h3>
+                <p>From Fitness to Programming, Cooking to Creative Writing. Seven categories spanning physical, mental, creative, technical, practical, knowledge, and social skills.</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">&#9670;</div>
+                <h3>7 Attributes</h3>
+                <p>Strength, Stamina, Dexterity, Intelligence, Wisdom, Creativity, and Charisma. Each skill contributes to attributes based on real-world mappings.</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">&#127984;</div>
+                <h3>8 Classes</h3>
+                <p>Warrior, Scholar, Artisan, Ranger, Diplomat, Sage, Tinkerer, or Bard. Your class reflects your personality and suggests skills to get you started.</p>
+            </div>
         </div>
     </div>
 </section>

@@ -3,39 +3,41 @@
 $maxSkillLevel = 250;
 ?>
 
-<div style="max-width: 640px; margin: var(--space-3xl) auto; padding: 0 var(--space-lg); text-align: center;">
+<div style="max-width: 720px; margin: var(--space-3xl) auto; padding: 0 var(--space-lg); text-align: center;">
 
     <p class="hero-subtitle">CHARACTER PROFILE</p>
     <h1 style="margin-bottom: var(--space-2xl);"><?= h($character['name']) ?></h1>
 
-    <!-- Character card -->
-    <div class="character-card card-ornate" style="text-align: left; margin-bottom: var(--space-2xl);">
-
-        <!-- Portrait + header -->
-        <div class="character-card__portrait" style="text-align: center; padding: var(--space-lg) var(--space-lg) 0;">
+    <!-- Character card (matches dashboard/landing layout) -->
+    <div class="character-card character-card--demo" style="margin: 0 auto var(--space-2xl);">
+        <div class="character-card__portrait">
             <?php if ($imgUrl): ?>
                 <img src="<?= h($imgUrl) ?>"
                      alt="<?= h($character['class_name']) ?>"
-                     style="max-width: 160px; height: auto; display: block; margin: 0 auto;"
                      onerror="this.parentElement.style.display='none'">
             <?php endif; ?>
         </div>
 
-        <div class="character-card__body" style="padding: var(--space-lg);">
+        <div class="character-card__body">
 
-            <div class="character-card__header" style="margin-bottom: var(--space-lg);">
+            <div class="character-card__header">
                 <div class="character-card__info">
                     <h3 class="character-card__name"><?= h($character['name']) ?></h3>
                     <p class="character-card__class" style="color: <?= h($character['class_color'] ?? 'var(--color-text-secondary)') ?>;">
                         Level <?= (int)$overallLevel ?> &middot; <?= h($character['class_name']) ?>
                     </p>
+                    <?php if (!empty($character['quote'])): ?>
+                    <div class="character-card__quote-area">
+                        <p class="character-card__quote"><em><?= h($character['quote']) ?></em></p>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
             <!-- Attributes -->
             <?php if (!empty($attributes)): ?>
-            <div class="character-card__stats" style="margin-bottom: var(--space-lg);">
-                <h4 style="margin-bottom: var(--space-sm);">Attributes</h4>
+            <div class="character-card__stats">
+                <h4>Attributes</h4>
                 <?php foreach ($attributes as $attr): ?>
                     <?php $score = round($attrScores[$attr['id']] ?? 0); ?>
                     <div class="stat-row">
@@ -50,7 +52,7 @@ $maxSkillLevel = 250;
             <!-- Top skills -->
             <?php if (!empty($topSkills)): ?>
             <div class="character-card__skills">
-                <h4 style="margin-bottom: var(--space-sm);">Top Skills</h4>
+                <h4>Top Skills</h4>
                 <?php foreach ($topSkills as $skill):
                     $pct = min(100, round(($skill['current_level'] / $maxSkillLevel) * 100));
                 ?>

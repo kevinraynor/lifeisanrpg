@@ -195,13 +195,28 @@
 }
 
 /* --- Features Alt Section --- */
+/* Full-bleed wrapper: overrides the base .features-overview max-width so the
+   background stretches edge-to-edge. Content stays centered via an inner
+   wrapper + the child .features-grid. */
 .features-overview--alt {
     background: var(--color-bg-secondary);
-    text-align: center;
+    max-width: none;
+    width: 100%;
+    margin: 0;
     padding: var(--space-3xl) var(--space-lg);
-    margin: 0 calc(-50vw + 50%);
-    padding-left: calc(50vw - 50%);
-    padding-right: calc(50vw - 50%);
+    text-align: center;
+}
+
+.features-overview--alt .features-inner {
+    max-width: var(--max-content-width);
+    margin: 0 auto;
+    text-align: center;
+}
+
+.features-overview--alt h2 {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .features-overview--alt .features-grid {
@@ -238,6 +253,10 @@
 
     .attributes-grid {
         grid-template-columns: 1fr;
+    }
+
+    .explore-skill-card {
+        flex-direction: row; /* keep icon+content side by side on small screens too */
     }
 }
 

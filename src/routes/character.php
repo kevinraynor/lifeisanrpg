@@ -115,6 +115,21 @@ $router->put('/api/character', function () {
         $params[] = $name;
     }
 
+    if (isset($data['quote'])) {
+        $quote = trim($data['quote']);
+        if ($quote !== '') {
+            $wordCount = preg_match_all('/\S+/', $quote);
+            if ($wordCount > 30) {
+                json_error('Quote cannot exceed 30 words');
+            }
+            if (strlen($quote) > 200) {
+                json_error('Quote cannot exceed 200 characters');
+            }
+        }
+        $updates[] = 'quote = ?';
+        $params[] = $quote !== '' ? $quote : null;
+    }
+
     if (empty($updates)) {
         json_error('No fields to update');
     }

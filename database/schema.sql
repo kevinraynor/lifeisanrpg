@@ -122,6 +122,7 @@ CREATE TABLE characters (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id     INT UNSIGNED NOT NULL UNIQUE,
     name        VARCHAR(50)  NOT NULL UNIQUE,
+    age         TINYINT UNSIGNED NULL,
     gender      ENUM('male', 'female') NOT NULL,
     class_id    TINYINT UNSIGNED NOT NULL,
     skin_id     INT UNSIGNED DEFAULT NULL,

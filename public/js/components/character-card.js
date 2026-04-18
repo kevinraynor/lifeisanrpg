@@ -1,19 +1,17 @@
 /**
  * Reusable character card component.
- * Renders a character's avatar, name, class, attributes, and top skills.
+ * Renders a character's avatar, name, class, quote, attributes, and top skills.
  */
 import Store from '../store.js';
 import { renderProgressBar } from './progress-bar.js';
 
 /**
- * Render a character card.
  * @param {Object} opts
- * @param {Object} opts.character - Character data
- * @param {Array} opts.skills - User skills array
- * @param {Object} opts.attributeScores - {attr_id: score}
- * @param {boolean} opts.isOwn - Whether this is the logged-in user's card
- * @param {number} opts.topN - Number of top skills to show
- * @returns {string} HTML string
+ * @param {Object} opts.character
+ * @param {Array}  opts.skills
+ * @param {Object} opts.attributeScores
+ * @param {boolean} opts.isOwn
+ * @param {number}  opts.topN
  */
 export function renderCharacterCard({ character, skills = [], attributeScores = {}, isOwn = true, topN = 5 }) {
     if (!character) {
@@ -24,13 +22,11 @@ export function renderCharacterCard({ character, skills = [], attributeScores = 
         ? character.image_url_female
         : character.image_url_male;
 
-    // Compute overall level (average of top attribute scores, rough approximation)
     const attrValues = Object.values(attributeScores).filter(v => v > 0);
     const overallLevel = attrValues.length > 0
         ? Math.round(attrValues.reduce((a, b) => a + b, 0) / attrValues.length)
         : 0;
 
-    // Attributes display
     const attributes = Store.allAttributes || [];
     const attrHTML = attributes.map(attr => {
         const score = attributeScores[attr.id] || 0;
@@ -43,7 +39,6 @@ export function renderCharacterCard({ character, skills = [], attributeScores = 
         `;
     }).join('');
 
-    // Top skills
     const topSkills = [...skills]
         .sort((a, b) => (b.current_level || 0) - (a.current_level || 0))
         .slice(0, topN);
@@ -63,6 +58,20 @@ export function renderCharacterCard({ character, skills = [], attributeScores = 
         `;
     }).join('');
 
+    const quote = character.quote || '';
+    const quotePlaceholder = isOwn ? 'Click to add your motto...' : '';
+
+    const quoteHTML = (quote || isOwn) ? `
+        <div class="character-card__quote-area ${isOwn ? 'is-editable' : ''}" title="${isOwn ? 'Click to edit quote' : ''}">
+            <p class="character-card__quote" data-quote="${escapeHtml(quote)}">
+                ${quote
+                    ? `<em>${escapeHtml(quote)}</em>`
+                    : `<span class="character-card__quote-placeholder">${quotePlaceholder}</span>`}
+            </p>
+            ${isOwn ? '<span class="character-card__quote-edit-hint" aria-hidden="true">✎</span>' : ''}
+        </div>
+    ` : '';
+
     return `
         <div class="character-card">
             ${imgUrl ? `<div class="character-card__portrait">
@@ -75,6 +84,7 @@ export function renderCharacterCard({ character, skills = [], attributeScores = 
                         <p class="character-card__class" style="color: ${character.class_color || 'inherit'}">
                             Level ${overallLevel} &middot; ${escapeHtml(character.class_name || 'Adventurer')}
                         </p>
+                        ${quoteHTML}
                     </div>
                 </div>
 
