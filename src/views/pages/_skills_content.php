@@ -44,10 +44,14 @@ $categories = ['Physical', 'Mental', 'Creative', 'Technical', 'Practical', 'Know
 
     <!-- Skills grid -->
     <div class="explore-grid" id="skills-grid">
-        <?php foreach ($allSkills as $skill):
+        <?php
+        $iconDir = dirname(__DIR__, 3) . '/public/img/skills';
+        foreach ($allSkills as $skill):
             $desc      = $skill['description'] ?? '';
             $truncated = mb_strlen($desc) > 100 ? mb_substr($desc, 0, 100) . '…' : $desc;
             $catLower  = strtolower($skill['category'] ?? 'other');
+            $iconPath  = $iconDir . '/' . $skill['slug'] . '.webp';
+            $hasIcon   = is_file($iconPath);
         ?>
         <a href="/skills/<?= h($skill['slug']) ?>"
            class="explore-skill-card"
@@ -55,7 +59,13 @@ $categories = ['Physical', 'Mental', 'Creative', 'Technical', 'Practical', 'Know
            data-name="<?= h(strtolower($skill['name'])) ?>"
            style="cursor: pointer; text-decoration: none; color: inherit;">
 
-            <div class="skill-icon skill-icon--placeholder" aria-hidden="true">&#9876;</div>
+            <?php if ($hasIcon): ?>
+                <div class="skill-icon" aria-hidden="true">
+                    <img src="/img/skills/<?= h($skill['slug']) ?>.webp" alt="">
+                </div>
+            <?php else: ?>
+                <div class="skill-icon skill-icon--placeholder" aria-hidden="true">&#9876;</div>
+            <?php endif; ?>
             <div class="explore-skill-card__content">
                 <div class="explore-skill-header">
                     <span class="explore-skill-name"><?= h($skill['name']) ?></span>

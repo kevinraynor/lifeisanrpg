@@ -7,6 +7,7 @@ import { post } from '../api.js';
 import { renderProgressBar, animateAllBars, animateProgressBar } from '../components/progress-bar.js';
 import { showLevelUp, showXPFloat } from '../components/level-up.js';
 import { loadActivityFeed } from '../components/social-feed.js';
+import { skillIconHtml } from '../components/skill-icon.js';
 
 const CATEGORY_ICONS = {
     physical: '💪', mental: '🧠', creative: '🎨', technical: '⚙️',
@@ -83,7 +84,7 @@ function renderSkillCard(us) {
     return `
         <div class="skill-card" data-skill-id="${us.skill_id}" id="skill-card-${us.skill_id}">
             <div class="skill-card__inner">
-                <div class="skill-icon skill-icon--placeholder" aria-hidden="true">&#9876;</div>
+                ${skillIconHtml(us.slug)}
                 <div class="skill-card__info">
                     <div class="skill-card__header">
                         <a class="skill-card__name skill-name-link" href="/app/skill/${escapeHtml(String(slug))}" data-slug="${escapeHtml(String(slug))}">${escapeHtml(us.name)}</a>

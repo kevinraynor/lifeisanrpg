@@ -4,6 +4,7 @@
 import Store from '../store.js';
 import { post } from '../api.js';
 import { openSkillExperienceModal } from '../components/skill-experience-modal.js';
+import { skillIconHtml } from '../components/skill-icon.js';
 
 export function renderExplore(container) {
     const categories = ['all', 'physical', 'mental', 'creative', 'technical', 'practical', 'knowledge', 'social'];
@@ -89,7 +90,7 @@ export function renderExplore(container) {
             return `
                 <div class="explore-skill-card ${activated ? 'activated' : ''} ${!available && !activated ? 'locked' : ''}"
                      data-skill-id="${s.id}" data-skill-slug="${s.slug || ''}" style="cursor:pointer">
-                    <div class="skill-icon skill-icon--placeholder" aria-hidden="true">&#9876;</div>
+                    ${skillIconHtml(s.slug)}
                     <div class="explore-skill-card__content">
                         <div class="explore-skill-header">
                             <span class="explore-skill-name">${escapeHtml(s.name)}</span>
@@ -229,7 +230,7 @@ export function renderExplore(container) {
             <div class="suggested-grid">
                 ${top.map(({ skill: s }) => `
                     <div class="explore-skill-card suggested" data-skill-id="${s.id}" data-skill-slug="${s.slug || ''}" style="cursor:pointer">
-                        <div class="skill-icon skill-icon--placeholder" aria-hidden="true">&#9876;</div>
+                        ${skillIconHtml(s.slug)}
                         <div class="explore-skill-card__content">
                             <div class="explore-skill-header">
                                 <span class="explore-skill-name">${escapeHtml(s.name)}</span>
