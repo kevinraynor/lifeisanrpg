@@ -159,11 +159,25 @@ $router->post('/api/user/skills/{id}/activate', function (string $id) {
         }
     }
 
-    // Activate
-    $stmt = $db->prepare('INSERT INTO user_skills (user_id, skill_id, total_xp, current_level) VALUES (?, ?, 0, 0)');
-    $stmt->execute([$userId, $skillId]);
+    // Optional prior-experience hours submitted with activation
+    $data = get_json_body();
+    $initialHours = max(0, min(20000, (float) ($data['initial_hours'] ?? 0)));
 
-    json_response(['success' => true]);
+    $stmt2 = $db->prepare('SELECT xp_multiplier, max_level FROM skills WHERE id = ?');
+    $stmt2->execute([$skillId]);
+    $skillMeta = $stmt2->fetch();
+
+    $totalXp = $initialHours > 0
+        ? XP::hoursToXP($initialHours, (float) $skillMeta['xp_multiplier'])
+        : 0;
+    $level = $totalXp > 0
+        ? XP::xpToLevel($totalXp, (int) $skillMeta['max_level'])
+        : 0;
+
+    $stmt = $db->prepare('INSERT INTO user_skills (user_id, skill_id, total_xp, current_level) VALUES (?, ?, ?, ?)');
+    $stmt->execute([$userId, $skillId, $totalXp, $level]);
+
+    json_response(['success' => true, 'total_xp' => $totalXp, 'level' => $level]);
 });
 
 // Log hours on a skill

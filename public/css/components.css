@@ -1071,7 +1071,7 @@
     transition: all 0.2s;
     display: flex;
     gap: var(--space-md);
-    align-items: flex-start;
+    align-items: center;
 }
 
 .explore-skill-card:hover {
@@ -1082,6 +1082,13 @@
 .explore-skill-card__content {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.explore-skill-action {
+    margin-top: auto;
+    padding-top: var(--space-xs);
 }
 
 .explore-skill-card.activated {
@@ -1135,12 +1142,6 @@
     font-size: 0.8rem;
     color: var(--color-red);
     margin-bottom: var(--space-sm);
-}
-
-.explore-skill-action {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: var(--space-sm);
 }
 
 .badge-activated {
@@ -1901,6 +1902,7 @@ input[type="number"] {
     cursor: pointer;
     font-weight: 600;
 }
+.sxp-context__body[hidden] { display: none; }
 .sxp-context__body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

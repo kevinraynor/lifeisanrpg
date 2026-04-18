@@ -3,6 +3,7 @@
  */
 import Store from '../store.js';
 import { post } from '../api.js';
+import { openSkillExperienceModal } from '../components/skill-experience-modal.js';
 
 export function renderExplore(container) {
     const categories = ['all', 'physical', 'mental', 'creative', 'technical', 'practical', 'knowledge', 'social'];
@@ -125,21 +126,31 @@ export function renderExplore(container) {
         });
 
         renderSuggested();
+        attachActivateHandlers(grid);
+    }
 
-        // Attach activate handlers
-        grid.querySelectorAll('.activate-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const skillId = parseInt(btn.dataset.skillId);
+    // Opens the experience modal, then activates with the computed hours.
+    function openActivateModal(skillId, btn) {
+        const skill = Store.getSkillById(skillId);
+        if (!skill) return;
+
+        openSkillExperienceModal({
+            skillName: skill.name,
+            xpMultiplier: parseFloat(skill.xp_multiplier) || 1,
+            maxLevel: parseInt(skill.max_level) || 250,
+            age: null,
+            saveLabel: 'Activate Skill',
+            onSave: async (hours) => {
                 btn.disabled = true;
                 btn.textContent = '...';
                 try {
-                    await post(`/api/user/skills/${skillId}/activate`);
-                    const skill = Store.getSkillById(skillId);
+                    const result = await post(`/api/user/skills/${skillId}/activate`, {
+                        initial_hours: hours,
+                    });
                     Store.addUserSkill({
                         skill_id: skillId,
-                        total_xp: 0,
-                        current_level: 0,
+                        total_xp: result.total_xp ?? 0,
+                        current_level: result.level ?? 0,
                         name: skill.name,
                         slug: skill.slug,
                         description: skill.description,
@@ -156,6 +167,16 @@ export function renderExplore(container) {
                     btn.disabled = false;
                     btn.textContent = 'Activate';
                 }
+            },
+        });
+    }
+
+    function attachActivateHandlers(root) {
+        root.querySelectorAll('.activate-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const skillId = parseInt(btn.dataset.skillId);
+                openActivateModal(skillId, btn);
             });
         });
     }
@@ -234,30 +255,7 @@ export function renderExplore(container) {
                 }
             });
         });
-        host.querySelectorAll('.activate-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const skillId = parseInt(btn.dataset.skillId);
-                btn.disabled = true;
-                btn.textContent = '...';
-                try {
-                    await post(`/api/user/skills/${skillId}/activate`);
-                    const skill = Store.getSkillById(skillId);
-                    Store.addUserSkill({
-                        skill_id: skillId, total_xp: 0, current_level: 0,
-                        name: skill.name, slug: skill.slug, description: skill.description,
-                        icon: skill.icon, max_level: skill.max_level,
-                        xp_multiplier: skill.xp_multiplier, category: skill.category,
-                        activated_at: new Date().toISOString(), last_logged: null,
-                    });
-                    renderSkills();
-                } catch (err) {
-                    alert(err.message || 'Could not activate skill');
-                    btn.disabled = false;
-                    btn.textContent = 'Activate';
-                }
-            });
-        });
+        attachActivateHandlers(host);
     }
 
     // Event listeners

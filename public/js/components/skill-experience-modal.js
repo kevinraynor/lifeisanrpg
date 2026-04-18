@@ -29,6 +29,7 @@ export function openSkillExperienceModal(opts) {
         maxLevel = 250,
         age = null,
         currentHours = 0,
+        saveLabel = 'Seal Your Chronicles',
         onSave = () => {},
     } = opts;
 
@@ -109,7 +110,7 @@ export function openSkillExperienceModal(opts) {
 
             <div class="modal__actions">
                 <button type="button" class="btn-fantasy btn-secondary" id="sxp-cancel">Cancel</button>
-                <button type="button" class="btn-fantasy btn-primary" id="sxp-save">Seal Your Chronicles</button>
+                <button type="button" class="btn-fantasy btn-primary" id="sxp-save">${esc(saveLabel)}</button>
             </div>
         </div>
     `;
