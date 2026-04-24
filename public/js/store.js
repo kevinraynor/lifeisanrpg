@@ -14,6 +14,14 @@ const Store = {
     skillAttrMap: [],
     skillPrereqs: [],
     csrfToken: '',
+    pendingFriendCount: 0,
+    friends: [],             // populated lazily when friends page or explore loads
+    quests:           { daily: [], weekly: [], monthly: [] },
+    questMultipliers: { daily: 0.5, weekly: 0.75, monthly: 1.0 },
+    questSlotLimits:  { daily: 3, weekly: 2, monthly: 1 },
+    guild:                   null,
+    guildInvitations:        [],
+    pendingGuildInviteCount: 0,
 
     /**
      * Initialize from inline JSON data.
@@ -30,6 +38,14 @@ const Store = {
         this.skillAttrMap = data.skillAttrMap || [];
         this.skillPrereqs = data.skillPrereqs || [];
         this.csrfToken = data.csrfToken || '';
+        this.pendingFriendCount = data.pendingFriendCount || 0;
+        this.friends = [];
+        this.quests           = data.quests           || this.quests;
+        this.questMultipliers = data.questMultipliers || this.questMultipliers;
+        this.questSlotLimits  = data.questSlotLimits  || this.questSlotLimits;
+        this.guild                   = data.guild                   || null;
+        this.guildInvitations        = data.guildInvitations        || [];
+        this.pendingGuildInviteCount = data.pendingGuildInviteCount || 0;
     },
 
     // --- Lookups ---
@@ -187,6 +203,27 @@ const Store = {
     removeUserSkill(skillId) {
         this.userSkills = this.userSkills.filter(us => us.skill_id != skillId);
         this.computeAttributeScores();
+    },
+
+    setPendingFriendCount(n) {
+        this.pendingFriendCount = Math.max(0, n);
+    },
+
+    setQuests(quests) {
+        this.quests = quests || this.quests;
+    },
+
+    setGuild(guild) {
+        this.guild = guild || null;
+    },
+
+    setGuildInvitations(invites) {
+        this.guildInvitations = Array.isArray(invites) ? invites : [];
+        this.pendingGuildInviteCount = this.guildInvitations.length;
+    },
+
+    setPendingGuildInviteCount(n) {
+        this.pendingGuildInviteCount = Math.max(0, n);
     },
 };
 

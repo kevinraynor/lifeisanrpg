@@ -2,6 +2,7 @@
  * Admin Skills Manager — full CRUD with search, attribute mapping, and content editor.
  */
 import { get, post, put, del } from '../api.js';
+import { renderVariationsEditor } from './variations-editor.js';
 import { attributes } from './admin-app.js';
 
 let allSkills = [];
@@ -93,6 +94,7 @@ function renderSkillRows() {
                 <button class="btn-fantasy btn-small btn-secondary btn-edit" data-id="${s.id}">Edit</button>
                 <button class="btn-fantasy btn-small btn-secondary btn-content" data-id="${s.id}">Content</button>
                 <button class="btn-fantasy btn-small btn-secondary btn-attrs" data-id="${s.id}">Attrs</button>
+                <button class="btn-fantasy btn-small btn-secondary btn-quests" data-id="${s.id}">Quests</button>
                 <button class="btn-fantasy btn-small btn-danger btn-delete" data-id="${s.id}">Delete</button>
             </td>
         </tr>
@@ -126,6 +128,12 @@ function attachRowHandlers(container) {
         btn.addEventListener('click', () => {
             const skill = allSkills.find(s => s.id == btn.dataset.id);
             if (skill) showAttrEditor(container, skill);
+        });
+    });
+    container.querySelectorAll('.btn-quests').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const skill = allSkills.find(s => s.id == btn.dataset.id);
+            if (skill) renderVariationsEditor(container, skill, () => renderSkillsList(container));
         });
     });
     container.querySelectorAll('.btn-delete').forEach(btn => {

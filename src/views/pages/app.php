@@ -56,6 +56,22 @@ $userData = [
     'email' => $_SESSION['user_email'] ?? '',
     'role'  => $_SESSION['user_role'] ?? 'user',
 ];
+
+// Pending friend request count (for notification badge)
+$pendingStmt = $db->prepare('SELECT COUNT(*) FROM friendships WHERE friend_id = ? AND status = \'pending\'');
+$pendingStmt->execute([$userId]);
+$pendingFriendCount = (int)$pendingStmt->fetchColumn();
+
+$quests = Quests::getAllActiveForUser($userId);
+$questMultipliers = [
+    'daily'   => Settings::getFloat('quest_bonus_multiplier_daily',   0.5),
+    'weekly'  => Settings::getFloat('quest_bonus_multiplier_weekly',  0.75),
+    'monthly' => Settings::getFloat('quest_bonus_multiplier_monthly', 1.0),
+];
+
+$guildSnapshot     = Guilds::forUser($userId);
+$guildInvitations  = Guilds::invitationsForUser($userId);
+$pendingGuildInviteCount = count($guildInvitations);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -96,9 +112,11 @@ $userData = [
                 </a>
                 <a href="/app/friends" class="sidebar-link" data-page="friends">
                     <span class="sidebar-icon">&#128101;</span> Friends
+                    <span class="friend-badge" id="friend-badge" style="display:none"></span>
                 </a>
                 <a href="/app/guild" class="sidebar-link" data-page="guild">
                     <span class="sidebar-icon">&#127984;</span> Guild
+                    <span class="friend-badge" id="guild-badge" style="display:none"></span>
                 </a>
             </nav>
         </aside>
@@ -128,8 +146,15 @@ $userData = [
             'allClasses'      => $allClasses,
             'allAttributes'   => $allAttributes,
             'skillAttrMap'    => $skillAttrMap,
-            'skillPrereqs'    => $skillPrereqs,
-            'csrfToken'       => csrf_token(),
+            'skillPrereqs'       => $skillPrereqs,
+            'csrfToken'          => csrf_token(),
+            'pendingFriendCount' => $pendingFriendCount,
+            'quests'             => $quests,
+            'questMultipliers'   => $questMultipliers,
+            'questSlotLimits'    => ['daily' => 3, 'weekly' => 2, 'monthly' => 1],
+            'guild'                   => $guildSnapshot,
+            'guildInvitations'        => $guildInvitations,
+            'pendingGuildInviteCount' => $pendingGuildInviteCount,
         ], JSON_UNESCAPED_UNICODE) ?>;
     </script>
     <script type="module" src="/js/app.js"></script>

@@ -14,6 +14,7 @@ import { renderFriends } from './pages/friends.js';
 import { renderGuild } from './pages/guild.js';
 import { renderSkillTree } from './pages/skill-tree.js';
 import { loadActivityFeed } from './components/social-feed.js';
+import { updateFriendBadge, updateGuildBadge } from './utils/badge.js';
 
 // Initialize store from inline JSON
 Store.init(window.__INITIAL_DATA__);
@@ -41,6 +42,10 @@ Router.on('skill', (el) => {
 
 // Boot router (resolves initial URL)
 Router.init('#dashboard-main');
+
+// Initialize sidebar notification badges from pre-loaded counts
+updateFriendBadge();
+updateGuildBadge();
 
 // Load activity feed into right panel
 loadActivityFeed();

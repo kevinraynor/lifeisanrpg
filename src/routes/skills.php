@@ -225,16 +225,37 @@ $router->post('/api/user/skills/{id}/log', function (string $id) {
 
         $db->commit();
 
+        $questsCompleted = Quests::onLog($userId, $skillId);
+        if ($questsCompleted) {
+            $stmt = $db->prepare('SELECT total_xp, current_level FROM user_skills WHERE user_id = ? AND skill_id = ?');
+            $stmt->execute([$userId, $skillId]);
+            $r = $stmt->fetch();
+            $newTotalXP = (int) $r['total_xp'];
+            $levelAfter = (int) $r['current_level'];
+        }
+
+        // Guild tallies: runs OUTSIDE the user-XP transaction. A failure here
+        // must never roll back the user's hour log — swallow silently.
+        $guildResult = ['tallies_completed' => [], 'guild_level_ups' => []];
+        try {
+            $guildResult = Guilds::onLog($userId, $hours);
+        } catch (Throwable $e) {
+            // Ignore — guild side-effect failures shouldn't break logging.
+        }
+
         $progress = XP::levelProgress($newTotalXP, (int) $userSkill['max_level']);
 
         json_response([
-            'success'      => true,
-            'xp_earned'    => $xpEarned,
-            'total_xp'     => $newTotalXP,
-            'level_before' => $levelBefore,
-            'level_after'  => $levelAfter,
-            'leveled_up'   => $levelAfter > $levelBefore,
-            'progress'     => round($progress, 1),
+            'success'                 => true,
+            'xp_earned'               => $xpEarned,
+            'total_xp'                => $newTotalXP,
+            'level_before'            => $levelBefore,
+            'level_after'             => $levelAfter,
+            'leveled_up'              => $levelAfter > $levelBefore,
+            'progress'                => round($progress, 1),
+            'quests_completed'        => $questsCompleted,
+            'guild_tallies_completed' => $guildResult['tallies_completed'],
+            'guild_level_ups'         => $guildResult['guild_level_ups'],
         ]);
     } catch (Exception $e) {
         $db->rollBack();
@@ -249,9 +270,13 @@ $router->delete('/api/user/skills/{id}', function (string $id) {
         json_error('Invalid CSRF token', 403);
     }
 
+    $userId = current_user_id();
+    $skillId = (int) $id;
     $db = Database::getInstance();
+
+    Quests::skipPendingForSkill($userId, $skillId);
     $stmt = $db->prepare('DELETE FROM user_skills WHERE user_id = ? AND skill_id = ?');
-    $stmt->execute([current_user_id(), (int) $id]);
+    $stmt->execute([$userId, $skillId]);
 
     json_response(['success' => true]);
 });

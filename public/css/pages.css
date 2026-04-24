@@ -303,3 +303,752 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ===================================================================
+   Friends Page
+   =================================================================== */
+
+.friends-page {
+    max-width: 900px;
+}
+
+.friends-page__header {
+    margin-bottom: var(--space-xl);
+}
+
+.friends-loading {
+    padding: var(--space-lg) 0;
+    color: var(--color-text-muted);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.friends-section-title {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    color: var(--color-gold-dark);
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-xs);
+    border-bottom: var(--border-card-light);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+/* --- Pending Requests --- */
+.friends-pending {
+    margin-bottom: var(--space-2xl);
+}
+
+.friends-pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.friend-pending-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-bg-card);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius);
+}
+
+.friend-pending-card__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    background: var(--color-bg-secondary);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.friend-pending-card__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+}
+
+.friend-pending-card__avatar-fallback {
+    font-size: 1.5rem;
+}
+
+.friend-pending-card__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.friend-pending-card__name {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+}
+
+.friend-pending-card__class {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+}
+
+.friend-pending-card__actions {
+    display: flex;
+    gap: var(--space-sm);
+    flex-shrink: 0;
+}
+
+/* --- Friends Grid --- */
+.friends-grid-section {
+    margin-bottom: var(--space-2xl);
+}
+
+.friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: var(--space-lg);
+}
+
+.friend-card {
+    background: var(--color-bg-card);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.friend-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+}
+
+.friend-card__portrait {
+    height: 140px;
+    background: var(--color-bg-secondary);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.friend-card__portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+}
+
+.friend-card__portrait-fallback {
+    font-size: 3rem;
+    opacity: 0.35;
+}
+
+/* Green "active today" dot */
+.friend-card__active-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-green);
+    border: 2px solid var(--color-bg-card);
+}
+
+.friend-card__body {
+    padding: var(--space-md);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.friend-card__name {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.friend-card__class {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+}
+
+.friend-card__quote {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    margin: var(--space-xs) 0;
+}
+
+.friend-card__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: auto;
+    padding-top: var(--space-sm);
+}
+
+.friend-card__skill-tag {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-secondary);
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+.friend-card__skill-tag strong {
+    color: var(--color-gold-dark);
+}
+
+.friend-card__actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: var(--border-card-light);
+}
+
+/* --- Add Friend Section --- */
+.friends-add-section {
+    margin-bottom: var(--space-2xl);
+}
+
+.friends-search-bar {
+    margin-bottom: var(--space-md);
+    max-width: 420px;
+}
+
+.friends-search-results {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    max-width: 480px;
+}
+
+.friend-search-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg-card);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius);
+}
+
+.friend-search-result__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.friend-search-result__name {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+}
+
+.friend-search-result__class {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+}
+
+.friends-empty,
+.friends-searching {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: var(--space-md) 0;
+}
+
+/* --- Friends Error Toast --- */
+.friends-toast {
+    position: fixed;
+    bottom: var(--space-xl);
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--color-bg-dark);
+    color: var(--color-gold-light);
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-gold-dark);
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.friends-toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+    .friends-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .friend-pending-card {
+        flex-wrap: wrap;
+    }
+
+    .friend-pending-card__actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* =========================================================
+   QUESTS PAGE
+   ========================================================= */
+.quests-page { max-width: 760px; margin: 0 auto; }
+
+.quests-header {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.quests-tabs {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    border-bottom: var(--border-card-light);
+    padding-bottom: 0;
+}
+.quests-tab {
+    padding: var(--space-sm) var(--space-md);
+    font-family: var(--font-ui);
+    cursor: pointer;
+    opacity: 0.6;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    color: var(--color-text-primary);
+    transition: opacity .15s, border-color .15s;
+    margin-bottom: -1px;
+}
+.quests-tab.active { opacity: 1; border-bottom-color: var(--color-gold); color: var(--color-gold-dark); }
+.quests-tab__slot-info { font-size: 0.75rem; margin-left: var(--space-xs); color: var(--color-text-muted); }
+
+.quest-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--color-bg-card);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--space-md);
+    transition: transform .15s, box-shadow .15s;
+}
+.quest-card--pending { cursor: pointer; }
+.quest-card--pending:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+.quest-card--completed { border-color: var(--color-green); background: rgba(91,158,78,0.05); }
+.quest-card--skipped   { opacity: .55; }
+
+.quest-card__body      { flex: 1; }
+.quest-card__header    { display: flex; align-items: baseline; gap: var(--space-sm); margin-bottom: var(--space-xs); flex-wrap: wrap; }
+.quest-card__skill     { font-size: .8rem; color: var(--color-text-muted); }
+.quest-card__title     { font-family: var(--font-heading); }
+.quest-card__desc      { font-size: .85rem; color: var(--color-text-muted); margin: var(--space-xs) 0; }
+.quest-card__meta      { font-size: .8rem; color: var(--color-text-muted); }
+.quest-card__progress  { height: 6px; background: var(--color-bg-secondary); border-radius: 3px; overflow: hidden; margin: var(--space-sm) 0; }
+.quest-card__progress-fill { height: 100%; background: var(--color-gold); transition: width .3s; }
+.quest-card__actions   { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); flex-wrap: wrap; }
+.quest-card__status    { font-size: .85rem; }
+.quest-card__status--done { color: var(--color-green); font-weight: 600; }
+.quest-card__status--skipped { color: var(--color-text-muted); }
+
+.quest-bonus-badge {
+    color: var(--color-gold-dark);
+    font-weight: 700;
+    font-size: .9rem;
+    white-space: nowrap;
+}
+
+.quests-empty        { color: var(--color-text-muted); font-style: italic; margin-top: var(--space-md); }
+.quests-active-empty { color: var(--color-text-muted); font-size: .9rem; margin-bottom: var(--space-md); }
+
+/* Sections */
+.quests-section { margin-bottom: var(--space-xl); }
+.quests-section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+.quests-section-title {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+}
+.quest-slot-counter {
+    font-size: .8rem;
+    color: var(--color-text-muted);
+    background: var(--color-bg-secondary);
+    padding: 2px var(--space-xs);
+    border-radius: 20px;
+}
+
+/* Skill icon inside cards */
+.quest-card__skill-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* Available quest rows */
+.quest-avail-hint {
+    font-size: .85rem;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-sm);
+}
+.quest-avail-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg-card);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--space-sm);
+}
+.quest-avail-icon { width: 28px; height: 28px; object-fit: contain; flex-shrink: 0; }
+.quest-avail-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.quest-avail-skill { font-size: .75rem; color: var(--color-text-muted); }
+.quest-avail-name  { font-family: var(--font-heading); font-size: .95rem; }
+.quest-avail-desc  { font-size: .8rem; color: var(--color-text-muted); }
+.quest-avail-meta  { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.quest-avail-hours { font-size: .85rem; font-weight: 600; color: var(--color-text-primary); }
+.quest-avail-bonus { font-size: .75rem; color: var(--color-gold-dark); white-space: nowrap; }
+
+/* Level-up quest chips row */
+.level-up-quests {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
+}
+
+/* ============================================================
+   Guild page
+   ============================================================ */
+
+.guild-page { max-width: 860px; margin: 0 auto; padding: var(--space-md); }
+.guild-loading, .guild-error { text-align: center; color: var(--color-text-muted); padding: var(--space-xl); }
+.guild-empty  { color: var(--color-text-muted); font-style: italic; margin: var(--space-sm) 0; }
+.guild-locked-hint { color: var(--color-text-muted); font-size: .9rem; margin: var(--space-xs) 0; }
+.guild-searching  { color: var(--color-text-muted); font-style: italic; }
+
+.guild-page__header { margin-bottom: var(--space-lg); }
+.guild-page__header h2 { font-family: var(--font-heading); font-size: 1.8rem; margin: 0 0 var(--space-xs); }
+
+/* ── Section ── */
+.guild-section { margin-bottom: var(--space-xl); }
+.guild-section-title {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: var(--color-text-primary);
+    border-bottom: var(--border-card-light);
+    padding-bottom: var(--space-xs);
+    margin-bottom: var(--space-md);
+}
+
+/* ── Header card ── */
+.guild-header-card {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+    background: var(--color-bg-card);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+.guild-header-card__icon {
+    width: 72px; height: 72px; flex-shrink: 0;
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+}
+.guild-header-card__icon img { width: 100%; height: 100%; object-fit: cover; }
+.guild-default-icon { font-size: 2.5rem; }
+.guild-header-card__info { flex: 1; min-width: 0; }
+.guild-name { font-family: var(--font-heading); font-size: 1.6rem; margin: 0 0 var(--space-xs); }
+.guild-meta-row { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-sm); }
+.guild-level-badge {
+    background: var(--color-gold);
+    color: #2a1a00;
+    font-weight: 700;
+    font-size: .8rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+.guild-member-count { font-size: .9rem; color: var(--color-text-muted); }
+
+/* XP bar */
+.guild-xp-bar-wrap { display: flex; align-items: center; gap: var(--space-sm); }
+.guild-xp-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--color-bg-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.guild-xp-bar__fill {
+    height: 100%;
+    background: var(--color-gold);
+    border-radius: 4px;
+    transition: width .4s ease;
+}
+.guild-xp-label { font-size: .75rem; color: var(--color-text-muted); white-space: nowrap; }
+
+/* ── Perk badges ── */
+.guild-perks-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-lg);
+}
+.guild-perk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: .78rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--color-gold-dark);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-muted);
+}
+.guild-perk-badge small { opacity: .7; }
+.guild-perk-badge--unlocked {
+    background: var(--color-gold);
+    color: #2a1a00;
+    border-color: var(--color-gold-dark);
+    font-weight: 600;
+}
+
+/* ── Announcement banner ── */
+.guild-announcement {
+    background: var(--color-bg-secondary);
+    border-left: 4px solid var(--color-gold);
+    border-radius: var(--border-radius);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+    font-size: .95rem;
+    color: var(--color-text-primary);
+}
+
+/* Announcement editor */
+.guild-announcement-editor { display: flex; flex-direction: column; gap: var(--space-sm); }
+.guild-announcement-actions { display: flex; gap: var(--space-sm); }
+
+/* ── Tally cards ── */
+.guild-tally-card {
+    background: var(--color-bg-card);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius);
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+}
+.guild-tally-card--done { opacity: .75; }
+.guild-tally-card__header {
+    display: flex; align-items: center; gap: var(--space-sm);
+    margin-bottom: var(--space-xs);
+}
+.guild-tally-card__name  { font-family: var(--font-heading); font-size: 1rem; flex: 1; }
+.guild-tally-card__period {
+    font-size: .75rem;
+    text-transform: capitalize;
+    color: var(--color-text-muted);
+    background: var(--color-bg-secondary);
+    padding: 2px 6px;
+    border-radius: 8px;
+}
+.guild-tally-card__desc { font-size: .82rem; color: var(--color-text-muted); margin: 0 0 var(--space-xs); }
+.guild-tally-card__progress { display: flex; flex-direction: column; gap: var(--space-xs); }
+.guild-tally-card__hours { font-size: .82rem; color: var(--color-text-muted); }
+
+/* ── Available tallies ── */
+.guild-avail-period { margin-bottom: var(--space-md); }
+.guild-avail-period__label {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-xs);
+}
+.guild-avail-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    background: var(--color-bg-secondary);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-xs);
+}
+.guild-avail-row__info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.guild-avail-row__name { font-weight: 600; font-size: .95rem; }
+.guild-avail-row__meta { font-size: .78rem; color: var(--color-text-muted); }
+
+/* ── Member rows ── */
+.guild-members-list { display: flex; flex-direction: column; gap: var(--space-xs); }
+.guild-member-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    background: var(--color-bg-secondary);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius);
+    padding: var(--space-sm) var(--space-md);
+}
+.guild-member-row--me { border-color: var(--color-gold-dark); }
+.guild-member-row__info { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.guild-member-row__name  { font-weight: 600; font-size: .95rem; }
+.guild-member-row__class { font-size: .78rem; color: var(--color-text-muted); }
+.guild-member-row__role  { font-size: .82rem; color: var(--color-gold-dark); white-space: nowrap; }
+.guild-member-row__levels { font-size: .78rem; color: var(--color-text-muted); white-space: nowrap; }
+.guild-member-actions { display: flex; gap: var(--space-xs); flex-shrink: 0; }
+
+/* ── Invite search ── */
+.guild-invite-search { margin-bottom: var(--space-sm); }
+.guild-pending-sent  { margin-top: var(--space-md); }
+.guild-pending-sent__label { font-size: .82rem; color: var(--color-text-muted); margin-bottom: var(--space-xs); }
+.guild-pending-sent__row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+    margin-bottom: 4px;
+    font-size: .9rem;
+}
+
+/* ── Chat ── */
+.guild-chat-section { }
+.guild-chat-messages {
+    background: var(--color-bg-secondary);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius);
+    padding: var(--space-sm);
+    max-height: 320px;
+    overflow-y: auto;
+    margin-bottom: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+.guild-chat-msg { border-bottom: 1px solid rgba(0,0,0,.06); padding-bottom: var(--space-xs); }
+.guild-chat-msg:last-child { border-bottom: none; padding-bottom: 0; }
+.guild-chat-msg__author { font-weight: 600; font-size: .85rem; color: var(--color-gold-dark); }
+.guild-chat-msg__time   { font-size: .75rem; color: var(--color-text-muted); margin-left: var(--space-xs); }
+.guild-chat-msg__body   { margin: 2px 0 0; font-size: .9rem; word-break: break-word; }
+.guild-chat-form { display: flex; gap: var(--space-sm); }
+.guild-chat-form .form-input { flex: 1; }
+
+/* ── Icon editor ── */
+.guild-icon-editor { display: flex; flex-direction: column; gap: var(--space-sm); }
+.guild-icon-actions { display: flex; gap: var(--space-sm); }
+
+/* ── Invitations (no-guild state) ── */
+.guild-invitations-section { margin-bottom: var(--space-xl); }
+.guild-invitations-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+.guild-invite-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    background: var(--color-bg-card);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius);
+    padding: var(--space-md);
+}
+.guild-invite-card__icon {
+    width: 48px; height: 48px; flex-shrink: 0;
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; overflow: hidden;
+}
+.guild-invite-card__icon img { width: 100%; height: 100%; object-fit: cover; }
+.guild-invite-card__info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.guild-invite-card__name { font-family: var(--font-heading); font-size: 1.1rem; }
+.guild-invite-card__meta { font-size: .8rem; color: var(--color-text-muted); }
+.guild-invite-card__actions { display: flex; gap: var(--space-xs); flex-shrink: 0; }
+
+/* ── Create form ── */
+.guild-create-section { background: var(--color-bg-card); border: var(--border-card-light); border-radius: var(--border-radius-lg); padding: var(--space-lg); }
+.guild-create-hint { font-size: .9rem; color: var(--color-text-muted); margin-bottom: var(--space-md); }
+.guild-create-form { display: flex; gap: var(--space-sm); align-items: stretch; }
+.guild-create-form .form-input { flex: 1; }
+.guild-create-error { color: #c0392b; font-size: .85rem; margin-top: var(--space-xs); }
+
+/* ── Danger zone ── */
+.guild-danger-section { padding-top: var(--space-md); border-top: var(--border-card-light); }
+.guild-danger-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; margin-bottom: var(--space-xs); }
+.guild-danger-hint { font-size: .82rem; color: var(--color-text-muted); }
+.btn-danger {
+    background: #c0392b;
+    color: #fff;
+    border-color: #922b21;
+}
+.btn-danger:hover { background: #922b21; }
+
+/* ── Level-up guild chips ── */
+.level-up-guild-tallies,
+.level-up-guild-levels {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
+}
+.guild-tally-chip {
+    display: inline-block;
+    background: var(--color-bg-dark);
+    border: 1px solid var(--color-gold-dark);
+    color: var(--color-gold);
+    font-size: .82rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+.guild-level-chip {
+    display: inline-block;
+    background: var(--color-gold);
+    color: #2a1a00;
+    font-weight: 700;
+    font-size: .85rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+/* Progress bar reuse (from components, duplicated for tally cards) */
+.progress-bar-track {
+    height: 10px;
+    background: var(--color-bg-secondary);
+    border-radius: 5px;
+    overflow: hidden;
+}
+.progress-bar-fill {
+    height: 100%;
+    background: var(--color-gold);
+    border-radius: 5px;
+    transition: width .4s ease;
+}
+.progress-bar-fill--complete { background: var(--color-green); }

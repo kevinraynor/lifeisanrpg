@@ -167,6 +167,29 @@
     text-align: center;
 }
 
+/* --- Friend Request Notification Badge --- */
+.friend-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: var(--color-red);
+    color: #fff;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-left: auto;
+}
+
+.friend-badge--inline {
+    margin-left: var(--space-xs);
+    vertical-align: middle;
+}
+
 /* Dashboard Main */
 .dashboard-main {
     padding: var(--space-xl);

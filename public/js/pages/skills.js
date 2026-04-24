@@ -169,9 +169,40 @@ async function handleLogHours(e) {
             }
         }
 
+        // Handle quest completions
+        const questsCompleted    = result.quests_completed        || [];
+        const guildTallies       = result.guild_tallies_completed || [];
+        const guildLevelUps      = result.guild_level_ups         || [];
+
+        if (questsCompleted.length) {
+            const completedById = Object.fromEntries(questsCompleted.map(c => [c.quest_id, c]));
+            for (const period of ['daily', 'weekly', 'monthly']) {
+                Store.quests[period] = (Store.quests[period] || []).map(q => {
+                    const done = completedById[q.id];
+                    return done
+                        ? { ...q, status: 'completed', bonus_xp: done.bonus_xp, completed_at: new Date().toISOString() }
+                        : q;
+                });
+            }
+        }
+
+        // Update guild XP/level in store if tallies completed
+        if (guildTallies.length && Store.guild) {
+            // Refresh guild snapshot after tally completion
+            import('../api.js').then(({ get }) =>
+                get('/api/guild').then(data => Store.setGuild(data)).catch(() => {})
+            );
+        }
+
+        const hasGuildEvent = guildTallies.length > 0 || guildLevelUps.length > 0;
+
         if (result.leveled_up) {
             setTimeout(() => {
-                showLevelUp(skillName, result.level_after, result.xp_earned, attrDiff);
+                showLevelUp(skillName, result.level_after, result.xp_earned, attrDiff, questsCompleted, guildTallies, guildLevelUps);
+            }, 400);
+        } else if (questsCompleted.length || hasGuildEvent) {
+            setTimeout(() => {
+                showLevelUp(skillName, result.level_after, result.xp_earned, {}, questsCompleted, guildTallies, guildLevelUps);
             }, 400);
         }
 

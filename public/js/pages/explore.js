@@ -2,11 +2,11 @@
  * Explore page — browse all available skills with filters.
  */
 import Store from '../store.js';
-import { post } from '../api.js';
+import { get, post } from '../api.js';
 import { openSkillExperienceModal } from '../components/skill-experience-modal.js';
 import { skillIconHtml } from '../components/skill-icon.js';
 
-export function renderExplore(container) {
+export async function renderExplore(container) {
     const categories = ['all', 'physical', 'mental', 'creative', 'technical', 'practical', 'knowledge', 'social'];
     const categoryLabels = {
         all: 'All', physical: 'Physical', mental: 'Mental', creative: 'Creative',
@@ -87,6 +87,18 @@ export function renderExplore(container) {
             const prereqs = Store.getPrerequisites(s.id);
             const prereqText = prereqs.map(p => `${p.skill?.name || '?'} Lv. ${p.required_level}`).join(', ');
 
+            // Friends who also have this skill
+            const friendsWithSkill = (Store.friends || []).filter(f =>
+                (f.skill_slugs || []).includes(s.slug)
+            );
+            const friendCount = friendsWithSkill.length;
+            const friendNames = friendsWithSkill.map(f => f.character_name).join(', ');
+            const friendsIndicator = friendCount > 0
+                ? `<span class="explore-skill-friends" title="${escapeHtml(friendNames)}">
+                       &#128101; ${friendCount} friend${friendCount !== 1 ? 's' : ''}
+                   </span>`
+                : '';
+
             return `
                 <div class="explore-skill-card ${activated ? 'activated' : ''} ${!available && !activated ? 'locked' : ''}"
                      data-skill-id="${s.id}" data-skill-slug="${s.slug || ''}" style="cursor:pointer">
@@ -100,6 +112,7 @@ export function renderExplore(container) {
                         <div class="explore-skill-meta">
                             <span>Max Lv. ${s.max_level}</span>
                             ${parseFloat(s.xp_multiplier) !== 1 ? `<span>XP &times;${s.xp_multiplier}</span>` : ''}
+                            ${friendsIndicator}
                         </div>
                         ${prereqText ? `<div class="explore-skill-prereq">Requires: ${escapeHtml(prereqText)}</div>` : ''}
                         <div class="explore-skill-action">
@@ -257,6 +270,15 @@ export function renderExplore(container) {
             });
         });
         attachActivateHandlers(host);
+    }
+
+    // Load friends data once (for "N friends have this skill" indicator)
+    if (!Store.friends || Store.friends.length === 0) {
+        try {
+            Store.friends = await get('/api/friends');
+        } catch {
+            Store.friends = [];
+        }
     }
 
     // Event listeners

@@ -47,6 +47,12 @@ $allAttributes = $db->query('SELECT * FROM attributes ORDER BY sort_order')->fet
                 <a href="/admin/classes" class="sidebar-link" data-page="classes">
                     <span class="sidebar-icon">&#127984;</span> Classes
                 </a>
+                <a href="/admin/settings" class="sidebar-link" data-page="settings">
+                    <span class="sidebar-icon">&#9881;</span> Settings
+                </a>
+                <a href="/admin/guild-tallies" class="sidebar-link" data-page="guild-tallies">
+                    <span class="sidebar-icon">&#127984;</span> Guild Tallies
+                </a>
             </nav>
         </aside>
 

@@ -442,3 +442,54 @@
         grid-template-columns: 1fr 1fr;
     }
 }
+
+/* =========================================================
+   ADMIN SETTINGS FORM
+   ========================================================= */
+.admin-settings-form { max-width: 480px; }
+.admin-settings-form .form-hint {
+    font-size: .8rem;
+    color: var(--color-text-muted);
+    margin-top: var(--space-xs);
+}
+
+/* =========================================================
+   QUEST VARIATIONS EDITOR
+   ========================================================= */
+.quest-variations-editor {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: var(--border-card-light);
+}
+.quest-variations-editor__period-tabs {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+.quest-variations-editor__period-tab {
+    padding: 4px 12px;
+    cursor: pointer;
+    opacity: 0.6;
+    border-radius: var(--border-radius);
+    border: var(--border-card-light);
+    background: none;
+    font-family: var(--font-ui);
+}
+.quest-variations-editor__period-tab.active {
+    opacity: 1;
+    background: var(--color-bg-secondary);
+    color: var(--color-gold-dark);
+    border-color: var(--color-gold-dark);
+}
+.quest-variation-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    margin-bottom: var(--space-sm);
+    flex-wrap: wrap;
+}
+.quest-variation-row .qv-name { flex: 2; min-width: 120px; }
+.quest-variation-row .qv-desc { flex: 3; min-width: 160px; }
+.qv-active-label { display: flex; align-items: center; gap: 4px; white-space: nowrap; font-size: .9rem; }
+.qv-add-row { margin-top: var(--space-lg); }
+.qv-add-row h4 { margin-bottom: var(--space-sm); }

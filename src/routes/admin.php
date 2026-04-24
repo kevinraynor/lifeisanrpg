@@ -226,6 +226,232 @@ $router->delete('/api/admin/users/{id}', function (string $id) {
     json_response(['success' => true]);
 });
 
+// === APP SETTINGS ===
+
+$router->get('/api/admin/settings', function () {
+    requireAdmin();
+    json_response(Settings::all());
+});
+
+$router->put('/api/admin/settings', function () {
+    requireAdmin();
+    if (!validate_csrf()) json_error('Invalid CSRF token', 403);
+    $allowed = [
+        'quest_bonus_multiplier_daily',
+        'quest_bonus_multiplier_weekly',
+        'quest_bonus_multiplier_monthly',
+    ];
+    foreach (get_json_body() as $k => $v) {
+        if (in_array($k, $allowed, true)) Settings::set($k, $v);
+    }
+    json_response(['success' => true]);
+});
+
+// === QUEST VARIATIONS ===
+
+$router->get('/api/admin/skills/{id}/variations', function (string $id) {
+    requireAdmin();
+    $db = Database::getInstance();
+    $period = $_GET['period'] ?? '';
+    $params = [(int) $id];
+    $sql = 'SELECT * FROM quest_variations WHERE skill_id = ?';
+    if (in_array($period, ['daily', 'weekly', 'monthly'], true)) {
+        $sql .= ' AND period = ?';
+        $params[] = $period;
+    }
+    $sql .= ' ORDER BY period, sort_order, id';
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll();
+    foreach ($rows as &$r) $r['hours'] = (float) $r['hours'];
+    json_response($rows);
+});
+
+$router->post('/api/admin/skills/{id}/variations', function (string $id) {
+    requireAdmin();
+    if (!validate_csrf()) json_error('Invalid CSRF token', 403);
+    $data = get_json_body();
+    $period = $data['period'] ?? '';
+    if (!in_array($period, ['daily', 'weekly', 'monthly'], true)) json_error('Invalid period', 400);
+    $name = trim($data['name'] ?? '');
+    if (strlen($name) < 2) json_error('Name must be at least 2 characters', 400);
+    $hours = (float) ($data['hours'] ?? 0);
+    if ($hours <= 0 || $hours > 200) json_error('Hours must be between 0 and 200', 400);
+
+    $db = Database::getInstance();
+    $stmt = $db->prepare('SELECT 1 FROM skills WHERE id = ?');
+    $stmt->execute([(int) $id]);
+    if (!$stmt->fetchColumn()) json_error('Skill not found', 404);
+
+    $stmt = $db->prepare('INSERT INTO quest_variations (skill_id, period, name, description, hours, sort_order) VALUES (?, ?, ?, ?, ?, ?)');
+    $stmt->execute([(int) $id, $period, $name, $data['description'] ?? null, $hours, (int) ($data['sort_order'] ?? 0)]);
+    json_response(['success' => true, 'id' => (int) $db->lastInsertId()]);
+});
+
+$router->put('/api/admin/quest-variations/{id}', function (string $id) {
+    requireAdmin();
+    if (!validate_csrf()) json_error('Invalid CSRF token', 403);
+    $data = get_json_body();
+    $db = Database::getInstance();
+
+    $updates = [];
+    $params = [];
+
+    if (isset($data['name'])) {
+        if (strlen(trim($data['name'])) < 2) json_error('Name must be at least 2 characters', 400);
+        $updates[] = 'name = ?';
+        $params[] = trim($data['name']);
+    }
+    if (array_key_exists('description', $data)) {
+        $updates[] = 'description = ?';
+        $params[] = $data['description'];
+    }
+    if (isset($data['hours'])) {
+        $hours = (float) $data['hours'];
+        if ($hours <= 0 || $hours > 200) json_error('Hours must be between 0 and 200', 400);
+        $updates[] = 'hours = ?';
+        $params[] = $hours;
+    }
+    if (isset($data['is_active'])) {
+        $updates[] = 'is_active = ?';
+        $params[] = (int) $data['is_active'];
+    }
+    if (empty($updates)) json_error('No fields to update', 400);
+
+    $params[] = (int) $id;
+    $db->prepare('UPDATE quest_variations SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($params);
+    json_response(['success' => true]);
+});
+
+$router->delete('/api/admin/quest-variations/{id}', function (string $id) {
+    requireAdmin();
+    if (!validate_csrf()) json_error('Invalid CSRF token', 403);
+    $db = Database::getInstance();
+    $db->prepare('DELETE FROM quest_variations WHERE id = ?')->execute([(int) $id]);
+    json_response(['success' => true]);
+});
+
+// === GUILD TALLY VARIATIONS ===
+
+$router->get('/api/admin/guild-tally-variations', function () {
+    requireAdmin();
+    $db = Database::getInstance();
+    $period = $_GET['period'] ?? '';
+    $sql = 'SELECT * FROM guild_tally_variations';
+    $params = [];
+    if (in_array($period, ['weekly', 'monthly'], true)) {
+        $sql .= ' WHERE period = ?';
+        $params[] = $period;
+    }
+    $sql .= ' ORDER BY period, sort_order, id';
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll();
+    foreach ($rows as &$r) {
+        $r['base_hours_per_member'] = (float) $r['base_hours_per_member'];
+        $r['bonus_xp']              = (int) $r['bonus_xp'];
+        $r['min_guild_level']       = (int) $r['min_guild_level'];
+        $r['sort_order']            = (int) $r['sort_order'];
+        $r['is_active']             = (int) $r['is_active'];
+    }
+    json_response($rows);
+});
+
+$router->post('/api/admin/guild-tally-variations', function () {
+    requireAdmin();
+    if (!validate_csrf()) json_error('Invalid CSRF token', 403);
+    $data = get_json_body();
+
+    $period = $data['period'] ?? '';
+    if (!in_array($period, ['weekly', 'monthly'], true)) json_error('Invalid period', 400);
+    $name = trim($data['name'] ?? '');
+    if (strlen($name) < 2 || strlen($name) > 150) json_error('Name must be 2–150 chars', 400);
+    $baseHours = (float) ($data['base_hours_per_member'] ?? 0);
+    if ($baseHours <= 0 || $baseHours > 999.99) json_error('base_hours_per_member out of range', 400);
+    $bonusXp = (int) ($data['bonus_xp'] ?? 0);
+    if ($bonusXp < 0 || $bonusXp > 1000000) json_error('bonus_xp out of range', 400);
+    $minLvl = (int) ($data['min_guild_level'] ?? 1);
+    if ($minLvl < 1 || $minLvl > 20) json_error('min_guild_level out of range', 400);
+
+    $db = Database::getInstance();
+    $stmt = $db->prepare('
+        INSERT INTO guild_tally_variations
+            (period, name, description, base_hours_per_member, bonus_xp, min_guild_level, sort_order, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ');
+    $stmt->execute([
+        $period,
+        $name,
+        $data['description'] ?? null,
+        $baseHours,
+        $bonusXp,
+        $minLvl,
+        (int) ($data['sort_order'] ?? 0),
+        isset($data['is_active']) ? (int) !!$data['is_active'] : 1,
+    ]);
+    json_response(['success' => true, 'id' => (int) $db->lastInsertId()]);
+});
+
+$router->put('/api/admin/guild-tally-variations/{id}', function (string $id) {
+    requireAdmin();
+    if (!validate_csrf()) json_error('Invalid CSRF token', 403);
+    $data = get_json_body();
+    $db = Database::getInstance();
+
+    $updates = [];
+    $params = [];
+
+    if (isset($data['name'])) {
+        $name = trim($data['name']);
+        if (strlen($name) < 2 || strlen($name) > 150) json_error('Name must be 2–150 chars', 400);
+        $updates[] = 'name = ?';
+        $params[] = $name;
+    }
+    if (array_key_exists('description', $data)) {
+        $updates[] = 'description = ?';
+        $params[] = $data['description'];
+    }
+    if (isset($data['base_hours_per_member'])) {
+        $h = (float) $data['base_hours_per_member'];
+        if ($h <= 0 || $h > 999.99) json_error('base_hours_per_member out of range', 400);
+        $updates[] = 'base_hours_per_member = ?';
+        $params[] = $h;
+    }
+    if (isset($data['bonus_xp'])) {
+        $xp = (int) $data['bonus_xp'];
+        if ($xp < 0 || $xp > 1000000) json_error('bonus_xp out of range', 400);
+        $updates[] = 'bonus_xp = ?';
+        $params[] = $xp;
+    }
+    if (isset($data['min_guild_level'])) {
+        $lvl = (int) $data['min_guild_level'];
+        if ($lvl < 1 || $lvl > 20) json_error('min_guild_level out of range', 400);
+        $updates[] = 'min_guild_level = ?';
+        $params[] = $lvl;
+    }
+    if (isset($data['sort_order'])) {
+        $updates[] = 'sort_order = ?';
+        $params[] = (int) $data['sort_order'];
+    }
+    if (isset($data['is_active'])) {
+        $updates[] = 'is_active = ?';
+        $params[] = (int) !!$data['is_active'];
+    }
+    if (empty($updates)) json_error('No fields to update', 400);
+
+    $params[] = (int) $id;
+    $db->prepare('UPDATE guild_tally_variations SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($params);
+    json_response(['success' => true]);
+});
+
+$router->delete('/api/admin/guild-tally-variations/{id}', function (string $id) {
+    requireAdmin();
+    if (!validate_csrf()) json_error('Invalid CSRF token', 403);
+    $db = Database::getInstance();
+    $db->prepare('DELETE FROM guild_tally_variations WHERE id = ?')->execute([(int) $id]);
+    json_response(['success' => true]);
+});
+
 // === CLASSES MANAGEMENT ===
 
 $router->get('/api/admin/classes', function () {

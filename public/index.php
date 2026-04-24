@@ -27,6 +27,9 @@ require BASE_PATH . '/src/Router.php';
 require BASE_PATH . '/src/Middleware.php';
 require BASE_PATH . '/src/models/Database.php';
 require BASE_PATH . '/src/models/XP.php';
+require BASE_PATH . '/src/models/Settings.php';
+require BASE_PATH . '/src/models/Quests.php';
+require BASE_PATH . '/src/models/Guilds.php';
 
 // Initialize router
 $router = new Router();
@@ -122,7 +125,7 @@ $router->get('/admin', function () {
 // ============================================================
 
 // Load API route files
-$apiRouteFiles = ['auth', 'character', 'skills', 'explore', 'social', 'admin'];
+$apiRouteFiles = ['auth', 'character', 'skills', 'explore', 'social', 'quests', 'guilds', 'admin'];
 foreach ($apiRouteFiles as $routeFile) {
     $filePath = BASE_PATH . '/src/routes/' . $routeFile . '.php';
     if (file_exists($filePath)) {

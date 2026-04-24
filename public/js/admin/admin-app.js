@@ -7,6 +7,8 @@ import { renderOverview } from './overview.js';
 import { renderSkillsManager } from './skills-manager.js';
 import { renderUsersManager } from './users-manager.js';
 import { renderClassesManager } from './classes-manager.js';
+import { renderSettingsManager } from './settings-manager.js';
+import { renderGuildTalliesManager } from './guild-tallies-manager.js';
 
 const adminData = window.__ADMIN_DATA__ || {};
 setCsrfToken(adminData.csrfToken);
@@ -19,6 +21,8 @@ const routes = {
     skills: renderSkillsManager,
     users: renderUsersManager,
     classes: renderClassesManager,
+    settings: renderSettingsManager,
+    'guild-tallies': renderGuildTalliesManager,
 };
 
 let currentPage = null;
