@@ -4,7 +4,8 @@
 import { escapeHtml } from '../utils/html.js';
 import { openModal } from './modal.js';
 
-let overlay = null;
+/** Close function for the currently open level-up modal, or null if none. */
+let closeCurrentModal = null;
 
 /**
  * Show a level-up celebration.
@@ -14,8 +15,9 @@ let overlay = null;
  * @param {Object} attrDiff - Map of attribute name → points gained (optional)
  */
 export function showLevelUp(skillName, newLevel, xpEarned, attrDiff = {}, bonusQuests = [], guildTallies = [], guildLevelUps = []) {
-    // Remove existing overlay if any
-    if (overlay) overlay.remove();
+    // If one is already open, animate it out before showing the new one.
+    // Both briefly coexist (300ms) while the old fades out and the new fades in.
+    if (closeCurrentModal) closeCurrentModal();
 
     const attrChanges = Object.entries(attrDiff).filter(([, v]) => v > 0.01);
     const attrsHTML = attrChanges.length > 0
@@ -62,10 +64,10 @@ export function showLevelUp(skillName, newLevel, xpEarned, attrDiff = {}, bonusQ
             </div>
         `,
         animate: true,
-        onClose: () => { overlay = null; },
+        onClose: () => { closeCurrentModal = null; },
     });
 
-    overlay = el;
+    closeCurrentModal = close;
     el.querySelector('.level-up-close').addEventListener('click', close);
 }
 

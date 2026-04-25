@@ -4,6 +4,7 @@
  */
 import Store from './store.js';
 import Router from './router.js';
+import { runPageCleanups } from './page-lifecycle.js';
 import { renderDashboard } from './pages/dashboard.js';
 import { renderSkills } from './pages/skills.js';
 import { renderExplore } from './pages/explore.js';
@@ -19,18 +20,30 @@ import { updateFriendBadge, updateGuildBadge } from './utils/badge.js';
 // Initialize store from inline JSON
 Store.init(window.__INITIAL_DATA__);
 
+/**
+ * Wrap a page render function so that any Store subscriptions registered by
+ * the outgoing page (via addPageCleanup) are torn down before the new page
+ * mounts. This prevents stale listeners from accumulating across navigations.
+ */
+function withCleanup(renderFn) {
+    return (el) => {
+        runPageCleanups();
+        renderFn(el);
+    };
+}
+
 // Register page routes
-Router.on('dashboard', (el) => renderDashboard(el));
-Router.on('skills', (el) => renderSkills(el));
-Router.on('explore', (el) => renderExplore(el));
-Router.on('attributes', (el) => renderAttributes(el));
-Router.on('quests', (el) => renderQuests(el));
-Router.on('friends', (el) => renderFriends(el));
-Router.on('guild', (el) => renderGuild(el));
-Router.on('tree', (el) => renderSkillTree(el));
+Router.on('dashboard', withCleanup(renderDashboard));
+Router.on('skills',    withCleanup(renderSkills));
+Router.on('explore',   withCleanup(renderExplore));
+Router.on('attributes',withCleanup(renderAttributes));
+Router.on('quests',    withCleanup(renderQuests));
+Router.on('friends',   withCleanup(renderFriends));
+Router.on('guild',     withCleanup(renderGuild));
+Router.on('tree',      withCleanup(renderSkillTree));
 
 // Skill detail: /app/skill/{slug}
-Router.on('skill', (el) => {
+Router.on('skill', withCleanup((el) => {
     const segments = window.location.pathname.replace(/^\/app\/?/, '').split('/').filter(Boolean);
     const skillSlug = segments[1];
     if (skillSlug) {
@@ -38,7 +51,7 @@ Router.on('skill', (el) => {
     } else {
         el.innerHTML = '<p>Skill not found.</p>';
     }
-});
+}));
 
 // Boot router (resolves initial URL)
 Router.init('#dashboard-main');

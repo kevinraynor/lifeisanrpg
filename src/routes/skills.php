@@ -213,54 +213,62 @@ $router->post('/api/user/skills/{id}/log', function (string $id) {
     $newTotalXP = (int) $userSkill['total_xp'] + $xpEarned;
     $levelAfter = XP::xpToLevel($newTotalXP, (int) $userSkill['max_level']);
 
+    // --- Core transaction: write XP + activity log atomically ---
     $db->beginTransaction();
     try {
-        // Update user_skills
         $stmt = $db->prepare('UPDATE user_skills SET total_xp = ?, current_level = ?, last_logged = CURRENT_TIMESTAMP WHERE user_id = ? AND skill_id = ?');
         $stmt->execute([$newTotalXP, $levelAfter, $userId, $skillId]);
 
-        // Log activity
         $stmt = $db->prepare('INSERT INTO activity_log (user_id, skill_id, hours, xp_earned, level_before, level_after, note) VALUES (?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([$userId, $skillId, $hours, $xpEarned, $levelBefore, $levelAfter, $note ?: null]);
 
         $db->commit();
+    } catch (Exception $e) {
+        $db->rollBack();
+        json_error('Failed to log hours', 500);
+    }
 
+    // --- Post-commit side effects: each runs independently and is fault-isolated.
+    //     A failure here must NEVER affect the already-committed hour log. ---
+
+    // Quest completion check
+    $questsCompleted = [];
+    try {
         $questsCompleted = Quests::onLog($userId, $skillId);
         if ($questsCompleted) {
+            // Re-read XP/level since quest bonus may have updated them.
             $stmt = $db->prepare('SELECT total_xp, current_level FROM user_skills WHERE user_id = ? AND skill_id = ?');
             $stmt->execute([$userId, $skillId]);
             $r = $stmt->fetch();
             $newTotalXP = (int) $r['total_xp'];
             $levelAfter = (int) $r['current_level'];
         }
-
-        // Guild tallies: runs OUTSIDE the user-XP transaction. A failure here
-        // must never roll back the user's hour log — swallow silently.
-        $guildResult = ['tallies_completed' => [], 'guild_level_ups' => []];
-        try {
-            $guildResult = Guilds::onLog($userId, $hours);
-        } catch (Throwable $e) {
-            // Ignore — guild side-effect failures shouldn't break logging.
-        }
-
-        $progress = XP::levelProgress($newTotalXP, (int) $userSkill['max_level']);
-
-        json_response([
-            'success'                 => true,
-            'xp_earned'               => $xpEarned,
-            'total_xp'                => $newTotalXP,
-            'level_before'            => $levelBefore,
-            'level_after'             => $levelAfter,
-            'leveled_up'              => $levelAfter > $levelBefore,
-            'progress'                => round($progress, 1),
-            'quests_completed'        => $questsCompleted,
-            'guild_tallies_completed' => $guildResult['tallies_completed'],
-            'guild_level_ups'         => $guildResult['guild_level_ups'],
-        ]);
-    } catch (Exception $e) {
-        $db->rollBack();
-        json_error('Failed to log hours', 500);
+    } catch (Throwable $e) {
+        // Swallow — quest side-effect failures must not break the log response.
     }
+
+    // Guild tally progress
+    $guildResult = ['tallies_completed' => [], 'guild_level_ups' => []];
+    try {
+        $guildResult = Guilds::onLog($userId, $hours);
+    } catch (Throwable $e) {
+        // Swallow — guild side-effect failures must not break the log response.
+    }
+
+    $progress = XP::levelProgress($newTotalXP, (int) $userSkill['max_level']);
+
+    json_response([
+        'success'                 => true,
+        'xp_earned'               => $xpEarned,
+        'total_xp'                => $newTotalXP,
+        'level_before'            => $levelBefore,
+        'level_after'             => $levelAfter,
+        'leveled_up'              => $levelAfter > $levelBefore,
+        'progress'                => round($progress, 1),
+        'quests_completed'        => $questsCompleted,
+        'guild_tallies_completed' => $guildResult['tallies_completed'],
+        'guild_level_ups'         => $guildResult['guild_level_ups'],
+    ]);
 });
 
 // Deactivate a skill

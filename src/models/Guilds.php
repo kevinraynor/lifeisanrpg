@@ -314,6 +314,9 @@ class Guilds
 
             $db->commit();
             return ['success' => true, 'guild_id' => $guildId];
+        } catch (AppException $e) {
+            $db->rollBack();
+            throw $e;
         } catch (Exception $e) {
             $db->rollBack();
             throw new AppException('Failed to create guild', 500);
@@ -418,6 +421,9 @@ class Guilds
 
             $db->commit();
             return ['success' => true, 'guild_id' => $guildId];
+        } catch (AppException $e) {
+            $db->rollBack();
+            throw $e;
         } catch (Exception $e) {
             $db->rollBack();
             throw new AppException('Failed to accept invitation', 500);
@@ -484,6 +490,9 @@ class Guilds
                 $db->prepare('DELETE FROM guild_members WHERE guild_id = ? AND user_id = ?')
                    ->execute([$guildId, $userId]);
                 $db->commit();
+            } catch (AppException $e) {
+                $db->rollBack();
+                throw $e;
             } catch (Exception $e) {
                 $db->rollBack();
                 throw new AppException('Failed to leave guild', 500);
