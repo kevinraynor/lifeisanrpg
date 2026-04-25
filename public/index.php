@@ -26,6 +26,7 @@ require BASE_PATH . '/src/helpers.php';
 require BASE_PATH . '/src/Router.php';
 require BASE_PATH . '/src/Middleware.php';
 require BASE_PATH . '/src/models/Database.php';
+require BASE_PATH . '/src/models/AppException.php';
 require BASE_PATH . '/src/models/XP.php';
 require BASE_PATH . '/src/models/Settings.php';
 require BASE_PATH . '/src/models/Quests.php';
@@ -137,4 +138,10 @@ foreach ($apiRouteFiles as $routeFile) {
 // DISPATCH
 // ============================================================
 
-$router->dispatch($method, $path);
+// AppException thrown by any model bubbles up here and becomes a JSON error.
+// All other uncaught exceptions propagate normally (PHP's default error handling).
+try {
+    $router->dispatch($method, $path);
+} catch (AppException $e) {
+    json_error($e->getMessage(), $e->httpStatus);
+}

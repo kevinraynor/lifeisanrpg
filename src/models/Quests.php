@@ -123,11 +123,11 @@ class Quests {
                               WHERE qv.id = ? AND qv.is_active = 1');
         $stmt->execute([$variationId]);
         $qv = $stmt->fetch();
-        if (!$qv) json_error('Quest not found', 404);
+        if (!$qv) throw new NotFoundException('Quest not found');
 
         $stmt = $db->prepare('SELECT 1 FROM user_skills WHERE user_id = ? AND skill_id = ?');
         $stmt->execute([$userId, $qv['skill_id']]);
-        if (!$stmt->fetchColumn()) json_error('Activate this skill first', 400);
+        if (!$stmt->fetchColumn()) throw new ValidationException('Activate this skill first');
 
         $start = self::periodStart($qv['period']);
         $limit = self::SLOT_LIMITS[$qv['period']];
@@ -136,7 +136,7 @@ class Quests {
                               WHERE user_id = ? AND period = ? AND period_start = ?');
         $stmt->execute([$userId, $qv['period'], $start]);
         if ((int) $stmt->fetchColumn() >= $limit) {
-            json_error("You've reached the {$qv['period']} quest limit ({$limit})", 400);
+            throw new ValidationException("You've reached the {$qv['period']} quest limit ({$limit})");
         }
 
         try {
@@ -145,7 +145,7 @@ class Quests {
                 VALUES (?, ?, ?, ?, 'pending')");
             $ins->execute([$userId, $variationId, $qv['period'], $start]);
         } catch (PDOException $e) {
-            json_error('Quest already active this period', 400);
+            throw new ValidationException('Quest already active this period');
         }
         return ['success' => true, 'id' => (int) $db->lastInsertId()];
     }

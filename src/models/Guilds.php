@@ -42,6 +42,31 @@ class Guilds
         return (int) ceil(self::GUILD_MAX_XP * pow($level / self::GUILD_MAX_LEVEL, 2));
     }
 
+    /**
+     * Recompute and persist current_level for a guild from its stored total_xp.
+     *
+     * This is the single authoritative writer for guilds.current_level.
+     * Always prefer this over inline UPDATE … SET current_level = self::xpToLevel(…).
+     * The onLog() method already computes both in one atomic UPDATE — that is correct.
+     * Use this helper for NEW code paths that need to touch current_level in isolation
+     * (e.g. admin corrections, XP adjustments, migration fixes).
+     *
+     * @return int  The newly persisted level (0 if the guild does not exist).
+     */
+    public static function recomputeLevel(int $guildId): int
+    {
+        $db = Database::getInstance();
+        $stmt = $db->prepare('SELECT total_xp FROM guilds WHERE id = ?');
+        $stmt->execute([$guildId]);
+        $totalXp = $stmt->fetchColumn();
+        if ($totalXp === false) return 0;
+
+        $level = self::xpToLevel((int) $totalXp);
+        $db->prepare('UPDATE guilds SET current_level = ? WHERE id = ?')
+           ->execute([$level, $guildId]);
+        return $level;
+    }
+
     public static function unlockedFeatures(int $level): array
     {
         return [
@@ -97,24 +122,30 @@ class Guilds
         return (int) $stmt->fetchColumn();
     }
 
+    /**
+     * @throws AuthorizationException if the user is not in the guild or lacks the required role.
+     */
     private static function requireRole(int $guildId, int $userId, array $allowedRoles): string
     {
         $db = Database::getInstance();
         $stmt = $db->prepare('SELECT role FROM guild_members WHERE guild_id = ? AND user_id = ?');
         $stmt->execute([$guildId, $userId]);
         $role = $stmt->fetchColumn();
-        if (!$role) json_error('Not a member of this guild', 403);
+        if (!$role) throw new AuthorizationException('Not a member of this guild');
         if (!in_array($role, $allowedRoles, true)) {
-            json_error('Insufficient guild role', 403);
+            throw new AuthorizationException('Insufficient guild role');
         }
         return $role;
     }
 
+    /**
+     * @throws AuthorizationException if the feature is not unlocked at the guild's current level.
+     */
     private static function requireFeature(array $guild, string $featureKey): void
     {
         $features = self::unlockedFeatures((int) $guild['current_level']);
         if (empty($features[$featureKey])) {
-            json_error("This feature unlocks at a higher guild level", 403);
+            throw new AuthorizationException('This feature unlocks at a higher guild level');
         }
     }
 
@@ -257,16 +288,16 @@ class Guilds
         $name = trim($name);
         $len = mb_strlen($name);
         if ($len < self::NAME_MIN || $len > self::NAME_MAX) {
-            json_error('Guild name must be 3–60 characters');
+            throw new ValidationException('Guild name must be 3–60 characters');
         }
 
         if (self::membershipForUser($userId)) {
-            json_error('You are already in a guild', 400);
+            throw new ValidationException('You are already in a guild');
         }
 
         $stmt = $db->prepare('SELECT id FROM guilds WHERE name = ?');
         $stmt->execute([$name]);
-        if ($stmt->fetchColumn()) json_error('That guild name is taken', 400);
+        if ($stmt->fetchColumn()) throw new ValidationException('That guild name is taken');
 
         $db->beginTransaction();
         try {
@@ -285,17 +316,16 @@ class Guilds
             return ['success' => true, 'guild_id' => $guildId];
         } catch (Exception $e) {
             $db->rollBack();
-            json_error('Failed to create guild', 500);
+            throw new AppException('Failed to create guild', 500);
         }
-        return ['success' => false];
     }
 
     public static function invite(int $inviterId, int $inviteeId): array
     {
-        if ($inviterId === $inviteeId) json_error('You cannot invite yourself');
+        if ($inviterId === $inviteeId) throw new ValidationException('You cannot invite yourself');
 
         $membership = self::membershipForUser($inviterId);
-        if (!$membership) json_error('You are not in a guild', 400);
+        if (!$membership) throw new ValidationException('You are not in a guild');
 
         $guildId = (int) $membership['guild_id'];
         self::requireRole($guildId, $inviterId, ['leader', 'officer']);
@@ -305,18 +335,18 @@ class Guilds
         // Invitee must be active user
         $stmt = $db->prepare('SELECT id FROM users WHERE id = ? AND is_active = 1');
         $stmt->execute([$inviteeId]);
-        if (!$stmt->fetchColumn()) json_error('User not found', 404);
+        if (!$stmt->fetchColumn()) throw new NotFoundException('User not found');
 
         // Invitee must not already be in any guild
         $stmt = $db->prepare('SELECT 1 FROM guild_members WHERE user_id = ?');
         $stmt->execute([$inviteeId]);
-        if ($stmt->fetchColumn()) json_error('User is already in a guild');
+        if ($stmt->fetchColumn()) throw new ValidationException('User is already in a guild');
 
         // Check member cap (against this guild's current cap)
         $guild = self::guildById($guildId);
         $features = self::unlockedFeatures((int) $guild['current_level']);
         if (self::memberCount($guildId) >= $features['member_cap']) {
-            json_error('Guild is at capacity');
+            throw new ValidationException('Guild is at capacity');
         }
 
         // Upsert invitation — re-invite flips old row back to pending.
@@ -328,7 +358,7 @@ class Guilds
 
         if ($existing) {
             if ($existing['status'] === 'pending') {
-                json_error('Invitation already pending');
+                throw new ValidationException('Invitation already pending');
             }
             $db->prepare('
                 UPDATE guild_invitations
@@ -355,19 +385,19 @@ class Guilds
         ');
         $stmt->execute([$invitationId, $userId]);
         $invite = $stmt->fetch();
-        if (!$invite) json_error('Invitation not found', 404);
+        if (!$invite) throw new NotFoundException('Invitation not found');
 
         if (self::membershipForUser($userId)) {
-            json_error('You are already in a guild');
+            throw new ValidationException('You are already in a guild');
         }
 
         $guildId = (int) $invite['guild_id'];
         $guild = self::guildById($guildId);
-        if (!$guild) json_error('Guild no longer exists', 404);
+        if (!$guild) throw new NotFoundException('Guild no longer exists');
 
         $features = self::unlockedFeatures((int) $guild['current_level']);
         if (self::memberCount($guildId) >= $features['member_cap']) {
-            json_error('Guild is at capacity');
+            throw new ValidationException('Guild is at capacity');
         }
 
         $db->beginTransaction();
@@ -390,9 +420,8 @@ class Guilds
             return ['success' => true, 'guild_id' => $guildId];
         } catch (Exception $e) {
             $db->rollBack();
-            json_error('Failed to accept invitation', 500);
+            throw new AppException('Failed to accept invitation', 500);
         }
-        return ['success' => false];
     }
 
     public static function declineInvite(int $userId, int $invitationId): array
@@ -404,7 +433,7 @@ class Guilds
             WHERE id = ? AND invitee_id = ? AND status = "pending"
         ');
         $stmt->execute([$invitationId, $userId]);
-        if ($stmt->rowCount() === 0) json_error('Invitation not found', 404);
+        if ($stmt->rowCount() === 0) throw new NotFoundException('Invitation not found');
         return ['success' => true];
     }
 
@@ -414,7 +443,7 @@ class Guilds
         $stmt = $db->prepare('SELECT guild_id FROM guild_invitations WHERE id = ? AND status = "pending"');
         $stmt->execute([$invitationId]);
         $gid = $stmt->fetchColumn();
-        if (!$gid) json_error('Invitation not found', 404);
+        if (!$gid) throw new NotFoundException('Invitation not found');
 
         self::requireRole((int) $gid, $userId, ['leader', 'officer']);
 
@@ -427,7 +456,7 @@ class Guilds
     public static function leave(int $userId): array
     {
         $membership = self::membershipForUser($userId);
-        if (!$membership) json_error('You are not in a guild', 400);
+        if (!$membership) throw new ValidationException('You are not in a guild');
         $guildId = (int) $membership['guild_id'];
 
         $db = Database::getInstance();
@@ -457,7 +486,7 @@ class Guilds
                 $db->commit();
             } catch (Exception $e) {
                 $db->rollBack();
-                json_error('Failed to leave guild', 500);
+                throw new AppException('Failed to leave guild', 500);
             }
             return ['success' => true, 'new_leader_id' => (int) $successor];
         }
@@ -470,22 +499,22 @@ class Guilds
     public static function kick(int $kickerId, int $targetUserId): array
     {
         $membership = self::membershipForUser($kickerId);
-        if (!$membership) json_error('You are not in a guild', 400);
+        if (!$membership) throw new ValidationException('You are not in a guild');
         $guildId = (int) $membership['guild_id'];
         self::requireRole($guildId, $kickerId, ['leader', 'officer']);
 
-        if ($targetUserId === $kickerId) json_error('Use leave to remove yourself');
+        if ($targetUserId === $kickerId) throw new ValidationException('Use leave to remove yourself');
 
         $db = Database::getInstance();
         $stmt = $db->prepare('SELECT role FROM guild_members WHERE guild_id = ? AND user_id = ?');
         $stmt->execute([$guildId, $targetUserId]);
         $targetRole = $stmt->fetchColumn();
-        if (!$targetRole) json_error('Member not found', 404);
-        if ($targetRole === 'leader') json_error('Cannot kick the leader');
+        if (!$targetRole) throw new NotFoundException('Member not found');
+        if ($targetRole === 'leader') throw new ValidationException('Cannot kick the leader');
 
         // Officers can only kick members; leaders can kick anyone (except themselves).
         if ($membership['role'] === 'officer' && $targetRole === 'officer') {
-            json_error('Officers cannot kick other officers', 403);
+            throw new AuthorizationException('Officers cannot kick other officers');
         }
 
         $db->prepare('DELETE FROM guild_members WHERE guild_id = ? AND user_id = ?')
@@ -496,26 +525,26 @@ class Guilds
     public static function setRole(int $leaderId, int $targetUserId, string $newRole): array
     {
         if (!in_array($newRole, ['officer', 'member'], true)) {
-            json_error('Invalid role');
+            throw new ValidationException('Invalid role');
         }
         $membership = self::membershipForUser($leaderId);
-        if (!$membership) json_error('You are not in a guild', 400);
+        if (!$membership) throw new ValidationException('You are not in a guild');
         $guildId = (int) $membership['guild_id'];
         self::requireRole($guildId, $leaderId, ['leader']);
 
-        if ($targetUserId === $leaderId) json_error('Cannot change your own role here');
+        if ($targetUserId === $leaderId) throw new ValidationException('Cannot change your own role here');
 
         $db = Database::getInstance();
         $stmt = $db->prepare('UPDATE guild_members SET role = ? WHERE guild_id = ? AND user_id = ? AND role != "leader"');
         $stmt->execute([$newRole, $guildId, $targetUserId]);
-        if ($stmt->rowCount() === 0) json_error('Member not found', 404);
+        if ($stmt->rowCount() === 0) throw new NotFoundException('Member not found');
         return ['success' => true];
     }
 
     public static function dissolve(int $leaderId): array
     {
         $membership = self::membershipForUser($leaderId);
-        if (!$membership) json_error('You are not in a guild', 400);
+        if (!$membership) throw new ValidationException('You are not in a guild');
         $guildId = (int) $membership['guild_id'];
         self::requireRole($guildId, $leaderId, ['leader']);
 
@@ -578,24 +607,24 @@ class Guilds
     public static function activateTally(int $userId, int $variationId): array
     {
         $membership = self::membershipForUser($userId);
-        if (!$membership) json_error('You are not in a guild', 400);
+        if (!$membership) throw new ValidationException('You are not in a guild');
         $guildId = (int) $membership['guild_id'];
         self::requireRole($guildId, $userId, ['leader', 'officer']);
 
         $memberCount = self::memberCount($guildId);
         if ($memberCount < self::MIN_MEMBERS_FOR_TALLY) {
-            json_error(sprintf('Need at least %d members to activate a tally', self::MIN_MEMBERS_FOR_TALLY));
+            throw new ValidationException(sprintf('Need at least %d members to activate a tally', self::MIN_MEMBERS_FOR_TALLY));
         }
 
         $db = Database::getInstance();
         $stmt = $db->prepare('SELECT * FROM guild_tally_variations WHERE id = ? AND is_active = 1');
         $stmt->execute([$variationId]);
         $gtv = $stmt->fetch();
-        if (!$gtv) json_error('Tally variation not found', 404);
+        if (!$gtv) throw new NotFoundException('Tally variation not found');
 
         $guild = self::guildById($guildId);
         if ((int) $guild['current_level'] < (int) $gtv['min_guild_level']) {
-            json_error('Your guild level is too low for this tally');
+            throw new ValidationException('Your guild level is too low for this tally');
         }
 
         $periodStart = self::periodStart($gtv['period']);
@@ -609,7 +638,7 @@ class Guilds
                 VALUES (?, ?, ?, ?, ?, 0, "pending", ?)
             ')->execute([$guildId, $variationId, $gtv['period'], $periodStart, $target, $userId]);
         } catch (PDOException $e) {
-            json_error('Tally already active this period', 400);
+            throw new ValidationException('Tally already active this period');
         }
         return ['success' => true, 'id' => (int) $db->lastInsertId(), 'target_hours' => $target];
     }
@@ -715,13 +744,13 @@ class Guilds
     public static function postMessage(int $userId, string $body): array
     {
         $body = trim($body);
-        if ($body === '') json_error('Message cannot be empty');
+        if ($body === '') throw new ValidationException('Message cannot be empty');
         if (mb_strlen($body) > self::MESSAGE_MAX_LEN) {
-            json_error('Message too long (max ' . self::MESSAGE_MAX_LEN . ' chars)');
+            throw new ValidationException('Message too long (max ' . self::MESSAGE_MAX_LEN . ' chars)');
         }
 
         $membership = self::membershipForUser($userId);
-        if (!$membership) json_error('You are not in a guild', 400);
+        if (!$membership) throw new ValidationException('You are not in a guild');
         $guildId = (int) $membership['guild_id'];
 
         $guild = self::guildById($guildId);
@@ -736,7 +765,7 @@ class Guilds
     public static function listMessages(int $userId, int $limit = 100): array
     {
         $membership = self::membershipForUser($userId);
-        if (!$membership) json_error('You are not in a guild', 400);
+        if (!$membership) throw new ValidationException('You are not in a guild');
         $guildId = (int) $membership['guild_id'];
 
         $guild = self::guildById($guildId);
@@ -759,7 +788,7 @@ class Guilds
     public static function setAnnouncement(int $userId, ?string $text): array
     {
         $membership = self::membershipForUser($userId);
-        if (!$membership) json_error('You are not in a guild', 400);
+        if (!$membership) throw new ValidationException('You are not in a guild');
         $guildId = (int) $membership['guild_id'];
         self::requireRole($guildId, $userId, ['leader', 'officer']);
 
@@ -770,7 +799,7 @@ class Guilds
             $text = trim($text);
             if ($text === '') $text = null;
             elseif (mb_strlen($text) > self::ANNOUNCEMENT_MAX_LEN) {
-                json_error('Announcement too long (max ' . self::ANNOUNCEMENT_MAX_LEN . ' chars)');
+                throw new ValidationException('Announcement too long (max ' . self::ANNOUNCEMENT_MAX_LEN . ' chars)');
             }
         }
 
@@ -783,7 +812,7 @@ class Guilds
     public static function setIcon(int $userId, ?string $url): array
     {
         $membership = self::membershipForUser($userId);
-        if (!$membership) json_error('You are not in a guild', 400);
+        if (!$membership) throw new ValidationException('You are not in a guild');
         $guildId = (int) $membership['guild_id'];
         self::requireRole($guildId, $userId, ['leader', 'officer']);
 
@@ -794,9 +823,9 @@ class Guilds
             $url = trim($url);
             if ($url === '') $url = null;
             elseif (!filter_var($url, FILTER_VALIDATE_URL)) {
-                json_error('Invalid URL');
+                throw new ValidationException('Invalid URL');
             } elseif (strlen($url) > 255) {
-                json_error('URL too long');
+                throw new ValidationException('URL too long');
             }
         }
 
