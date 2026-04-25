@@ -2,6 +2,7 @@
  * Admin Quest Variations Editor — sub-panel for a single skill.
  */
 import { get, post, put, del } from '../api.js';
+import { esc } from '../utils/html.js';
 
 const PERIODS = ['daily', 'weekly', 'monthly'];
 const PERIOD_LABELS = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
@@ -173,11 +174,4 @@ function renderContent(container, skill, onBack, variations) {
             btn.textContent = '+ Add';
         }
     });
-}
-
-function esc(str) {
-    if (!str) return '';
-    const d = document.createElement('div');
-    d.textContent = String(str);
-    return d.innerHTML;
 }

@@ -4,6 +4,7 @@
 import Store from '../store.js';
 import { post, get } from '../api.js';
 import { showLevelUp } from '../components/level-up.js';
+import { esc } from '../utils/html.js';
 
 const TABS = ['daily', 'weekly', 'monthly'];
 const TAB_LABELS = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
@@ -233,11 +234,4 @@ async function handleActivate(variationId, btn) {
         alert(err.message || 'Failed to activate quest');
         if (btn) { btn.disabled = false; btn.textContent = 'Activate'; }
     }
-}
-
-function esc(str) {
-    if (!str) return '';
-    const d = document.createElement('div');
-    d.textContent = String(str);
-    return d.innerHTML;
 }

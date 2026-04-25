@@ -8,6 +8,7 @@ import { renderProgressBar, animateAllBars, animateProgressBar } from '../compon
 import { showLevelUp, showXPFloat } from '../components/level-up.js';
 import { loadActivityFeed } from '../components/social-feed.js';
 import { skillIconHtml } from '../components/skill-icon.js';
+import { escapeHtml } from '../utils/html.js';
 
 const CATEGORY_ICONS = {
     physical: '💪', mental: '🧠', creative: '🎨', technical: '⚙️',
@@ -230,10 +231,3 @@ document.addEventListener('click', (e) => {
         window.dispatchEvent(new PopStateEvent('popstate'));
     }
 });
-
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}

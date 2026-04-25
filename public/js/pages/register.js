@@ -8,6 +8,7 @@
  */
 import { post, get, setCsrfToken } from '../api.js';
 import { openSkillExperienceModal } from '../components/skill-experience-modal.js';
+import { escapeHtml } from '../utils/html.js';
 
 const data = window.__REGISTER_DATA__;
 if (!data) throw new Error('Registration data not loaded');
@@ -552,15 +553,6 @@ function renderStep4() {
             submitBtn.textContent = 'Begin Your Adventure';
         }
     });
-}
-
-// --- Utility ---
-
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }
 
 // --- Initialize ---

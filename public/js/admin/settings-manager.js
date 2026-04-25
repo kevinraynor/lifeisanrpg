@@ -2,6 +2,7 @@
  * Admin Settings Manager — quest bonus multipliers.
  */
 import { get, put } from '../api.js';
+import { esc } from '../utils/html.js';
 
 export async function renderSettingsManager(container) {
     container.innerHTML = '<h1>Settings</h1><p>Loading...</p>';
@@ -76,11 +77,4 @@ export async function renderSettingsManager(container) {
             btn.textContent = 'Save Settings';
         }
     });
-}
-
-function esc(str) {
-    if (!str) return '';
-    const d = document.createElement('div');
-    d.textContent = String(str);
-    return d.innerHTML;
 }

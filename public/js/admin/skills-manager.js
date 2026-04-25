@@ -4,6 +4,7 @@
 import { get, post, put, del } from '../api.js';
 import { renderVariationsEditor } from './variations-editor.js';
 import { attributes } from './admin-app.js';
+import { esc } from '../utils/html.js';
 
 let allSkills = [];
 let currentFilter = { search: '', category: '' };
@@ -494,11 +495,4 @@ async function showAttrEditor(container, skill) {
             btn.textContent = 'Save Mappings';
         }
     });
-}
-
-function esc(str) {
-    if (str === null || str === undefined) return '';
-    const div = document.createElement('div');
-    div.textContent = String(str);
-    return div.innerHTML;
 }

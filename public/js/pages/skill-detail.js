@@ -4,6 +4,7 @@
 import Store from '../store.js';
 import { get } from '../api.js';
 import { renderProgressBar } from '../components/progress-bar.js';
+import { escapeHtml } from '../utils/html.js';
 
 export async function renderSkillDetail(container, skillSlug) {
     container.innerHTML = '<p>Loading skill details...</p>';
@@ -94,11 +95,4 @@ function simpleMarkdown(md) {
     html = html.replace(/\n\n/g, '</p><p>');
     html = '<p>' + html + '</p>';
     return html;
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }

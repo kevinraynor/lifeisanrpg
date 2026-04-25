@@ -1,7 +1,15 @@
 /**
  * Client-side data store.
  * Holds pre-loaded data and provides computed helpers.
+ *
+ * Pub/sub: call Store.on(key, fn) to subscribe to a named key;
+ * mutation helpers call Store.emit(key) after updating the value.
+ * Store.on() returns an unsubscribe function — call it on page unmount
+ * to avoid stale listeners accumulating across SPA navigations.
  */
+
+/** @type {Map<string, Set<Function>>} */
+const _listeners = new Map();
 
 const Store = {
     user: null,
@@ -185,6 +193,30 @@ const Store = {
         return scores;
     },
 
+    // --- Pub/sub ---
+
+    /**
+     * Subscribe to changes for a named key.
+     * @param {string}   key - e.g. 'pendingFriendCount', 'guild', 'userSkills'
+     * @param {Function} fn  - called with no arguments after the value changes
+     * @returns {Function} Unsubscribe — call this on page unmount
+     */
+    on(key, fn) {
+        if (!_listeners.has(key)) _listeners.set(key, new Set());
+        _listeners.get(key).add(fn);
+        return () => _listeners.get(key)?.delete(fn);
+    },
+
+    /**
+     * Notify all listeners registered for a key.
+     * Called internally by mutation helpers; rarely needed externally.
+     * @param {string} key
+     */
+    emit(key) {
+        const fns = _listeners.get(key);
+        if (fns) fns.forEach(fn => fn());
+    },
+
     // --- Mutation helpers ---
 
     updateUserSkill(skillId, updates) {
@@ -193,37 +225,49 @@ const Store = {
             Object.assign(this.userSkills[idx], updates);
         }
         this.computeAttributeScores();
+        this.emit('userSkills');
+        this.emit('attributeScores');
     },
 
     addUserSkill(skillData) {
         this.userSkills.push(skillData);
         this.computeAttributeScores();
+        this.emit('userSkills');
+        this.emit('attributeScores');
     },
 
     removeUserSkill(skillId) {
         this.userSkills = this.userSkills.filter(us => us.skill_id != skillId);
         this.computeAttributeScores();
+        this.emit('userSkills');
+        this.emit('attributeScores');
     },
 
     setPendingFriendCount(n) {
         this.pendingFriendCount = Math.max(0, n);
+        this.emit('pendingFriendCount');
     },
 
     setQuests(quests) {
         this.quests = quests || this.quests;
+        this.emit('quests');
     },
 
     setGuild(guild) {
         this.guild = guild || null;
+        this.emit('guild');
     },
 
     setGuildInvitations(invites) {
         this.guildInvitations = Array.isArray(invites) ? invites : [];
         this.pendingGuildInviteCount = this.guildInvitations.length;
+        this.emit('guildInvitations');
+        this.emit('pendingGuildInviteCount');
     },
 
     setPendingGuildInviteCount(n) {
         this.pendingGuildInviteCount = Math.max(0, n);
+        this.emit('pendingGuildInviteCount');
     },
 };
 

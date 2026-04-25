@@ -1,6 +1,8 @@
 /**
  * Level-up animation overlay.
  */
+import { escapeHtml } from '../utils/html.js';
+import { openModal } from './modal.js';
 
 let overlay = null;
 
@@ -46,43 +48,25 @@ export function showLevelUp(skillName, newLevel, xpEarned, attrDiff = {}, bonusQ
         ? `<h2>Level Up!</h2><p class="level-up-skill">${escapeHtml(skillName)}</p><div class="level-number">${newLevel}</div><p class="level-up-xp">+${xpEarned.toLocaleString()} XP</p>`
         : `<h2>Bonus Rewards!</h2><p class="level-up-xp">+${xpEarned.toLocaleString()} XP</p>`;
 
-    overlay = document.createElement('div');
-    overlay.className = 'level-up-overlay';
-    overlay.innerHTML = `
-        <div class="level-up-content">
-            <div class="level-up-stars">&#10029; &#10029; &#10029;</div>
-            ${headline}
-            ${attrsHTML}
-            ${questsHTML}
-            ${guildTalliesHTML}
-            ${guildLevelHTML}
-            <button class="btn-fantasy btn-primary level-up-close">Continue</button>
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    // Trigger animation
-    requestAnimationFrame(() => {
-        overlay.classList.add('visible');
+    const { el, close } = openModal({
+        className: 'level-up-overlay',
+        content: `
+            <div class="level-up-content">
+                <div class="level-up-stars">&#10029; &#10029; &#10029;</div>
+                ${headline}
+                ${attrsHTML}
+                ${questsHTML}
+                ${guildTalliesHTML}
+                ${guildLevelHTML}
+                <button class="btn-fantasy btn-primary level-up-close">Continue</button>
+            </div>
+        `,
+        animate: true,
+        onClose: () => { overlay = null; },
     });
 
-    // Close handlers
-    const closeBtn = overlay.querySelector('.level-up-close');
-    closeBtn.addEventListener('click', closeLevelUp);
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) closeLevelUp();
-    });
-}
-
-function closeLevelUp() {
-    if (overlay) {
-        overlay.classList.remove('visible');
-        setTimeout(() => {
-            overlay.remove();
-            overlay = null;
-        }, 300);
-    }
+    overlay = el;
+    el.querySelector('.level-up-close').addEventListener('click', close);
 }
 
 /**
@@ -100,11 +84,4 @@ export function showXPFloat(anchorEl, xp) {
     document.body.appendChild(floater);
 
     setTimeout(() => floater.remove(), 1500);
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }

@@ -4,6 +4,8 @@
 import { get, post, del } from '../api.js';
 import Store from '../store.js';
 import { updateFriendBadge } from '../utils/badge.js';
+import { escapeHtml } from '../utils/html.js';
+import { showToast } from '../utils/toast.js';
 
 export async function renderFriends(container) {
     container.innerHTML = `
@@ -288,21 +290,3 @@ function renderSearchResult(u) {
 // Utilities
 // ---------------------------------------------------------------------------
 
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
-
-function showToast(msg) {
-    const toast = document.createElement('div');
-    toast.className = 'friends-toast';
-    toast.textContent = msg;
-    document.body.appendChild(toast);
-    requestAnimationFrame(() => toast.classList.add('visible'));
-    setTimeout(() => {
-        toast.classList.remove('visible');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}

@@ -5,6 +5,7 @@
 import Store from '../store.js';
 import { put } from '../api.js';
 import { renderCharacterCard } from '../components/character-card.js';
+import { escapeHtml } from '../utils/html.js';
 
 export function renderDashboard(container) {
     const characterId = Store.character?.user_id || Store.user?.id;
@@ -116,11 +117,4 @@ function showQuoteEditor(quoteArea, container) {
             saveBtn.textContent = 'Save';
         }
     });
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }

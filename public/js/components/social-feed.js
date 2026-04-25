@@ -5,6 +5,7 @@
  * A banner at the top shows how many cheers your activities received today.
  */
 import { get, post } from '../api.js';
+import { escapeHtml } from '../utils/html.js';
 
 export async function loadActivityFeed() {
     const container = document.getElementById('feed-content');
@@ -115,11 +116,4 @@ function formatTimeAgo(date) {
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }

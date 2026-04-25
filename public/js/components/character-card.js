@@ -4,6 +4,7 @@
  */
 import Store from '../store.js';
 import { renderProgressBar } from './progress-bar.js';
+import { escapeHtml } from '../utils/html.js';
 
 /**
  * @param {Object} opts
@@ -102,11 +103,4 @@ export function renderCharacterCard({ character, skills = [], attributeScores = 
             </div>
         </div>
     `;
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }

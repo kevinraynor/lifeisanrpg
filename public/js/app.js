@@ -43,7 +43,9 @@ Router.on('skill', (el) => {
 // Boot router (resolves initial URL)
 Router.init('#dashboard-main');
 
-// Initialize sidebar notification badges from pre-loaded counts
+// Sidebar notification badges — update on boot and reactively on every Store mutation
+Store.on('pendingFriendCount', updateFriendBadge);
+Store.on('pendingGuildInviteCount', updateGuildBadge);
 updateFriendBadge();
 updateGuildBadge();
 

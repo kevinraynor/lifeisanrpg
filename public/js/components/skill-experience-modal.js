@@ -16,11 +16,8 @@
  *   });
  */
 
-function esc(str) {
-    const div = document.createElement('div');
-    div.textContent = String(str ?? '');
-    return div.innerHTML;
-}
+import { esc } from '../utils/html.js';
+import { openModal } from './modal.js';
 
 export function openSkillExperienceModal(opts) {
     const {
@@ -40,83 +37,6 @@ export function openSkillExperienceModal(opts) {
     const maxHobbyYrs    = age ? cap(age - 5) : 100;
     const maxTeachYrs    = age ? cap(age - 16) : 80;
 
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay visible';
-    overlay.innerHTML = `
-        <div class="modal modal--skill-xp card-ornate" role="dialog" aria-modal="true">
-            <div class="modal__header">
-                <h2>Experience with ${esc(skillName)}</h2>
-                <button type="button" class="modal__close" aria-label="Close">&times;</button>
-            </div>
-            <p class="modal__desc">
-                Tell us how you've spent time on this skill. Check any that apply &mdash;
-                we'll tally your chronicles.
-            </p>
-
-            <div class="sxp-contexts">
-                ${renderContext('pro', 'I use this skill professionally', `
-                    <label>Seniority
-                        <select data-field="pro.seniority">
-                            <option value="junior">Junior (no bonus)</option>
-                            <option value="intermediate" selected>Intermediate (+3 yrs)</option>
-                            <option value="senior">Senior (+6 yrs)</option>
-                        </select>
-                    </label>
-                    <label>Years in this role
-                        <input type="number" min="0" max="${maxProYears}" step="0.5" value="0" data-field="pro.years">
-                    </label>
-                    <label>Employment type
-                        <select data-field="pro.employment">
-                            <option value="fulltime">Full-time</option>
-                            <option value="parttime">Part-time</option>
-                        </select>
-                    </label>
-                    <label data-pt-only hidden>Hours per week at this job
-                        <input type="number" min="1" max="39" step="1" value="20" data-field="pro.pthpw">
-                    </label>
-                `)}
-                ${renderContext('academic', 'I studied this at school / university', `
-                    <label>Years of study
-                        <input type="number" min="0" max="${maxAcademicYrs}" step="0.5" value="0" data-field="academic.years">
-                    </label>
-                    <label>Hours per week (during term)
-                        <input type="number" min="0" max="80" step="0.5" value="4" data-field="academic.hpw">
-                    </label>
-                `)}
-                ${renderContext('hobby', 'I practice this as a hobby', `
-                    <label>Years doing it
-                        <input type="number" min="0" max="${maxHobbyYrs}" step="0.5" value="0" data-field="hobby.years">
-                    </label>
-                    <label>Avg hours per week
-                        <input type="number" min="0" max="80" step="0.5" value="3" data-field="hobby.hpw">
-                    </label>
-                `)}
-                ${renderContext('self', 'Self-taught / online courses / books', `
-                    <label>Total hours spent (estimate)
-                        <input type="number" min="0" max="20000" step="10" value="0" data-field="self.total">
-                    </label>
-                `)}
-                ${renderContext('teach', 'I teach / mentor others in this skill', `
-                    <label>Years teaching
-                        <input type="number" min="0" max="${maxTeachYrs}" step="0.5" value="0" data-field="teach.years">
-                    </label>
-                    <label>Avg hours per week
-                        <input type="number" min="0" max="80" step="0.5" value="2" data-field="teach.hpw">
-                    </label>
-                `)}
-            </div>
-
-            <div class="sxp-error" id="sxp-error"></div>
-
-            <div class="modal__actions">
-                <button type="button" class="btn-fantasy btn-secondary" id="sxp-cancel">Cancel</button>
-                <button type="button" class="btn-fantasy btn-primary" id="sxp-save">${esc(saveLabel)}</button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-
     function renderContext(key, label, body) {
         return `
             <div class="sxp-context" data-context="${key}">
@@ -128,6 +48,83 @@ export function openSkillExperienceModal(opts) {
             </div>
         `;
     }
+
+    const { el: overlay, close } = openModal({
+        className: 'modal-overlay',
+        animate: false,
+        content: `
+            <div class="modal modal--skill-xp card-ornate" role="dialog" aria-modal="true">
+                <div class="modal__header">
+                    <h2>Experience with ${esc(skillName)}</h2>
+                    <button type="button" class="modal__close" aria-label="Close">&times;</button>
+                </div>
+                <p class="modal__desc">
+                    Tell us how you've spent time on this skill. Check any that apply &mdash;
+                    we'll tally your chronicles.
+                </p>
+
+                <div class="sxp-contexts">
+                    ${renderContext('pro', 'I use this skill professionally', `
+                        <label>Seniority
+                            <select data-field="pro.seniority">
+                                <option value="junior">Junior (no bonus)</option>
+                                <option value="intermediate" selected>Intermediate (+3 yrs)</option>
+                                <option value="senior">Senior (+6 yrs)</option>
+                            </select>
+                        </label>
+                        <label>Years in this role
+                            <input type="number" min="0" max="${maxProYears}" step="0.5" value="0" data-field="pro.years">
+                        </label>
+                        <label>Employment type
+                            <select data-field="pro.employment">
+                                <option value="fulltime">Full-time</option>
+                                <option value="parttime">Part-time</option>
+                            </select>
+                        </label>
+                        <label data-pt-only hidden>Hours per week at this job
+                            <input type="number" min="1" max="39" step="1" value="20" data-field="pro.pthpw">
+                        </label>
+                    `)}
+                    ${renderContext('academic', 'I studied this at school / university', `
+                        <label>Years of study
+                            <input type="number" min="0" max="${maxAcademicYrs}" step="0.5" value="0" data-field="academic.years">
+                        </label>
+                        <label>Hours per week (during term)
+                            <input type="number" min="0" max="80" step="0.5" value="4" data-field="academic.hpw">
+                        </label>
+                    `)}
+                    ${renderContext('hobby', 'I practice this as a hobby', `
+                        <label>Years doing it
+                            <input type="number" min="0" max="${maxHobbyYrs}" step="0.5" value="0" data-field="hobby.years">
+                        </label>
+                        <label>Avg hours per week
+                            <input type="number" min="0" max="80" step="0.5" value="3" data-field="hobby.hpw">
+                        </label>
+                    `)}
+                    ${renderContext('self', 'Self-taught / online courses / books', `
+                        <label>Total hours spent (estimate)
+                            <input type="number" min="0" max="20000" step="10" value="0" data-field="self.total">
+                        </label>
+                    `)}
+                    ${renderContext('teach', 'I teach / mentor others in this skill', `
+                        <label>Years teaching
+                            <input type="number" min="0" max="${maxTeachYrs}" step="0.5" value="0" data-field="teach.years">
+                        </label>
+                        <label>Avg hours per week
+                            <input type="number" min="0" max="80" step="0.5" value="2" data-field="teach.hpw">
+                        </label>
+                    `)}
+                </div>
+
+                <div class="sxp-error" id="sxp-error"></div>
+
+                <div class="modal__actions">
+                    <button type="button" class="btn-fantasy btn-secondary" id="sxp-cancel">Cancel</button>
+                    <button type="button" class="btn-fantasy btn-primary" id="sxp-save">${esc(saveLabel)}</button>
+                </div>
+            </div>
+        `,
+    });
 
     // Toggle context bodies on checkbox change
     overlay.querySelectorAll('[data-toggle]').forEach(cb => {
@@ -245,10 +242,8 @@ export function openSkillExperienceModal(opts) {
 
     recompute();
 
-    const close = () => overlay.remove();
     overlay.querySelector('.modal__close').addEventListener('click', close);
     overlay.querySelector('#sxp-cancel').addEventListener('click', close);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
 
     overlay.querySelector('#sxp-save').addEventListener('click', () => {
         const { hours, errors } = compute();

@@ -2,6 +2,7 @@
  * Admin Classes Manager — edit class descriptions, images, colors, suggested skills.
  */
 import { get, put } from '../api.js';
+import { esc } from '../utils/html.js';
 
 let allClasses = [];
 
@@ -174,11 +175,4 @@ function showClassEditor(container, cls) {
 function truncate(str, len) {
     if (!str) return '';
     return str.length > len ? str.substring(0, len) + '...' : str;
-}
-
-function esc(str) {
-    if (str === null || str === undefined) return '';
-    const div = document.createElement('div');
-    div.textContent = String(str);
-    return div.innerHTML;
 }

@@ -2,6 +2,7 @@
  * Account settings page.
  */
 import { get, post, setCsrfToken } from '../api.js';
+import { escapeHtml } from '../utils/html.js';
 
 if (window.__CSRF_TOKEN__) {
     setCsrfToken(window.__CSRF_TOKEN__);
@@ -113,13 +114,6 @@ async function init() {
     } catch {
         container.innerHTML = '<p class="form-error">Failed to load account info. Please try again.</p>';
     }
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }
 
 init();

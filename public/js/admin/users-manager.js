@@ -2,6 +2,7 @@
  * Admin Users Manager — search, filter, toggle active, change role.
  */
 import { get, put, del } from '../api.js';
+import { esc } from '../utils/html.js';
 
 let allUsers = [];
 let searchQuery = '';
@@ -180,11 +181,4 @@ function formatDate(dateStr) {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
-function esc(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }

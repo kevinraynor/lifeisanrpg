@@ -5,6 +5,7 @@ import Store from '../store.js';
 import { get, post } from '../api.js';
 import { openSkillExperienceModal } from '../components/skill-experience-modal.js';
 import { skillIconHtml } from '../components/skill-icon.js';
+import { escapeHtml } from '../utils/html.js';
 
 export async function renderExplore(container) {
     const categories = ['all', 'physical', 'mental', 'creative', 'technical', 'practical', 'knowledge', 'social'];
@@ -294,11 +295,4 @@ export async function renderExplore(container) {
     });
 
     renderSkills();
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
 }

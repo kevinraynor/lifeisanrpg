@@ -3,6 +3,7 @@
  * Period tabs (weekly / monthly only — no daily for guilds).
  */
 import { get, post, put, del } from '../api.js';
+import { esc } from '../utils/html.js';
 
 const PERIODS = ['weekly', 'monthly'];
 const PERIOD_LABELS = { weekly: 'Weekly', monthly: 'Monthly' };
@@ -187,11 +188,4 @@ function collectRow(row) {
     if (!name || name.length < 2) { alert('Name must be at least 2 characters'); return null; }
     if (!hours || hours <= 0)     { alert('Hours per member must be > 0'); return null; }
     return { name, description: desc || null, base_hours_per_member: hours, bonus_xp: bonusXp, min_guild_level: minLvl, sort_order: sortOrder, is_active: isActive };
-}
-
-function esc(str) {
-    if (!str) return '';
-    const d = document.createElement('div');
-    d.textContent = String(str);
-    return d.innerHTML;
 }
