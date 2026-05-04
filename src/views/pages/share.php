@@ -35,25 +35,7 @@ $skills = $stmt->fetchAll();
 $stmt = $db->query('SELECT id, name, slug, color FROM attributes ORDER BY sort_order');
 $attributes = $stmt->fetchAll();
 
-// Get skill-attribute map for this user's skills
-$skillIds   = array_column($skills, 'skill_id');
-$attrScores = [];
-if (!empty($skillIds)) {
-    $placeholders = implode(',', array_fill(0, count($skillIds), '?'));
-    $stmt = $db->prepare("
-        SELECT sam.attribute_id, sam.ratio, us.current_level
-        FROM skill_attribute_map sam
-        JOIN user_skills us ON us.skill_id = sam.skill_id
-        WHERE us.user_id = ? AND sam.skill_id IN ($placeholders)
-    ");
-    $stmt->execute(array_merge([$character_id], $skillIds));
-    foreach ($stmt->fetchAll() as $row) {
-        $attrScores[$row['attribute_id']] = ($attrScores[$row['attribute_id']] ?? 0)
-            + ($row['current_level'] * $row['ratio']);
-    }
-}
-
-// Overall level: average of attr scores (same as JS)
+$attrScores   = User::computeAttributeScores($character_id);
 $attrValues   = array_filter(array_values($attrScores));
 $overallLevel = count($attrValues) > 0 ? round(array_sum($attrValues) / count($attrValues)) : 0;
 

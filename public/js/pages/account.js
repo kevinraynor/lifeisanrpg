@@ -3,6 +3,7 @@
  */
 import { get, post, setCsrfToken } from '../api.js';
 import { escapeHtml } from '../utils/html.js';
+import { formGroup } from '../utils/form-row.js';
 
 if (window.__CSRF_TOKEN__) {
     setCsrfToken(window.__CSRF_TOKEN__);
@@ -33,19 +34,10 @@ async function init() {
             <div class="account-card card-ornate">
                 <h3>Change Password</h3>
                 <form id="password-form" class="account-form">
-                    <div class="form-group">
-                        <label class="form-label">Current Password</label>
-                        <input type="password" class="form-input" name="current_password" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">New Password</label>
-                        <input type="password" class="form-input" name="new_password" required minlength="8">
-                        <div class="form-hint">Minimum 8 characters</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Confirm New Password</label>
-                        <input type="password" class="form-input" name="confirm_password" required>
-                    </div>
+                    ${formGroup({ label: 'Current Password', name: 'current_password', type: 'password', required: true })}
+                    ${formGroup({ label: 'New Password',     name: 'new_password',     type: 'password', required: true,
+                                  inputAttrs: 'minlength="8"', hint: 'Minimum 8 characters' })}
+                    ${formGroup({ label: 'Confirm New Password', name: 'confirm_password', type: 'password', required: true })}
                     <div class="form-error" id="password-error"></div>
                     <div class="form-hint success" id="password-success" style="display:none"></div>
                     <button type="submit" class="btn-fantasy btn-primary">Update Password</button>
@@ -59,14 +51,15 @@ async function init() {
             </div>
         `;
 
-        // Logout
+        // Logout — redirect even on failure (server-side session may still be cleared,
+        // and there's no actionable recovery UI here), but log the error for diagnostics.
         document.getElementById('btn-logout').addEventListener('click', async () => {
             try {
                 await post('/api/auth/logout');
-                window.location.href = '/';
-            } catch {
-                window.location.href = '/';
+            } catch (err) {
+                console.warn('Logout failed:', err);
             }
+            window.location.href = '/';
         });
 
         // Password change
@@ -111,8 +104,15 @@ async function init() {
                 btn.textContent = 'Update Password';
             }
         });
-    } catch {
-        container.innerHTML = '<p class="form-error">Failed to load account info. Please try again.</p>';
+    } catch (err) {
+        console.warn('Account load failed:', err);
+        container.innerHTML = `
+            <div class="account-card card-ornate">
+                <p class="form-error">Could not load your account info.</p>
+                <button class="btn-fantasy btn-secondary btn-small" id="account-retry">Retry</button>
+            </div>
+        `;
+        document.getElementById('account-retry')?.addEventListener('click', init);
     }
 }
 

@@ -27,29 +27,12 @@ $userSkills = $db->prepare('
 $userSkills->execute([$userId]);
 $userSkillsData = $userSkills->fetchAll();
 
-$allSkills = $db->query('SELECT id, name, slug, description, icon, max_level, xp_multiplier, category, sort_order FROM skills WHERE is_active = 1 ORDER BY sort_order')->fetchAll();
-$allClasses = $db->query('SELECT * FROM classes ORDER BY sort_order')->fetchAll();
+$allSkills = $db->query('SELECT ' . Skills::COLS . ' FROM skills WHERE is_active = 1 ORDER BY sort_order')->fetchAll();
 $allAttributes = $db->query('SELECT * FROM attributes ORDER BY sort_order')->fetchAll();
 $skillAttrMap = $db->query('SELECT skill_id, attribute_id, ratio FROM skill_attribute_map')->fetchAll();
 $skillPrereqs = $db->query('SELECT skill_id, required_skill_id, required_level FROM skill_prerequisites')->fetchAll();
 
-// Derive attribute scores
-$attributeScores = [];
-foreach ($allAttributes as $attr) {
-    $attributeScores[$attr['id']] = 0;
-}
-foreach ($userSkillsData as $us) {
-    foreach ($skillAttrMap as $sam) {
-        if ((int)$sam['skill_id'] === (int)$us['skill_id']) {
-            $attributeScores[(int)$sam['attribute_id']] += (int)$us['current_level'] * (float)$sam['ratio'];
-        }
-    }
-}
-// Round scores
-foreach ($attributeScores as &$score) {
-    $score = (int)round($score);
-}
-unset($score);
+$attributeScores = User::computeAttributeScores($userId);
 
 $userData = [
     'id'    => $userId,
@@ -62,16 +45,10 @@ $pendingStmt = $db->prepare('SELECT COUNT(*) FROM friendships WHERE friend_id = 
 $pendingStmt->execute([$userId]);
 $pendingFriendCount = (int)$pendingStmt->fetchColumn();
 
-$quests = Quests::getAllActiveForUser($userId);
-$questMultipliers = [
-    'daily'   => Settings::getFloat('quest_bonus_multiplier_daily',   0.5),
-    'weekly'  => Settings::getFloat('quest_bonus_multiplier_weekly',  0.75),
-    'monthly' => Settings::getFloat('quest_bonus_multiplier_monthly', 1.0),
-];
-
-$guildSnapshot     = Guilds::forUser($userId);
-$guildInvitations  = Guilds::invitationsForUser($userId);
-$pendingGuildInviteCount = count($guildInvitations);
+// Guild invite count for sidebar badge — lightweight count only; full data fetched lazily by the guild page
+$guildInvStmt = $db->prepare('SELECT COUNT(*) FROM guild_invitations WHERE invitee_id = ? AND status = \'pending\'');
+$guildInvStmt->execute([$userId]);
+$pendingGuildInviteCount = (int) $guildInvStmt->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -138,23 +115,22 @@ $pendingGuildInviteCount = count($guildInvitations);
     <!-- Pre-loaded data -->
     <script>
         window.__INITIAL_DATA__ = <?= json_encode([
+            // Core: always needed at boot
             'user'            => $userData,
             'character'       => $characterData,
             'userSkills'      => $userSkillsData,
             'attributeScores' => $attributeScores,
+            'csrfToken'       => csrf_token(),
+            // Skill catalog: stable reference data for explore/tree/attributes
             'allSkills'       => $allSkills,
-            'allClasses'      => $allClasses,
             'allAttributes'   => $allAttributes,
             'skillAttrMap'    => $skillAttrMap,
-            'skillPrereqs'       => $skillPrereqs,
-            'csrfToken'          => csrf_token(),
-            'pendingFriendCount' => $pendingFriendCount,
-            'quests'             => $quests,
-            'questMultipliers'   => $questMultipliers,
-            'questSlotLimits'    => ['daily' => 3, 'weekly' => 2, 'monthly' => 1],
-            'guild'                   => $guildSnapshot,
-            'guildInvitations'        => $guildInvitations,
+            'skillPrereqs'    => $skillPrereqs,
+            // Sidebar badges
+            'pendingFriendCount'      => $pendingFriendCount,
             'pendingGuildInviteCount' => $pendingGuildInviteCount,
+            // NOTE: allClasses, quests, guild, and guildInvitations are fetched
+            // lazily by the pages that need them (account, quests, guild).
         ], JSON_UNESCAPED_UNICODE) ?>;
     </script>
     <script type="module" src="/js/app.js"></script>

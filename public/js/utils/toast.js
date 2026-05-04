@@ -15,7 +15,7 @@
 /**
  * Show a brief auto-dismissing toast notification.
  * @param {string} msg   - Message to display.
- * @param {'info'|'error'} [type='info'] - Visual variant (adds a CSS modifier class).
+ * @param {'info'|'success'|'error'} [type='info'] - Visual variant (adds a CSS modifier class).
  * @param {number} [duration=3000] - How long the toast is visible (ms).
  */
 export function showToast(msg, type = 'info', duration = 3000) {

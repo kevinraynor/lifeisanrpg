@@ -174,9 +174,14 @@ function renderStep1() {
                     nameStatus.className = 'form-hint error';
                     nameOk = false; refreshNext();
                 }
-            } catch {
-                nameStatus.textContent = 'Could not check name';
+            } catch (err) {
+                console.warn('Name availability check failed:', err);
+                nameStatus.textContent = 'Could not check name — please try again';
                 nameStatus.className = 'form-hint error';
+                // Block "Next" until the check actually succeeds: previously a failed
+                // check left nameOk in its prior state, so users could submit names
+                // that turn out to be taken.
+                nameOk = false; refreshNext();
             }
         }, 400);
     });

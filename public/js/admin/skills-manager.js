@@ -5,6 +5,8 @@ import { get, post, put, del } from '../api.js';
 import { renderVariationsEditor } from './variations-editor.js';
 import { attributes } from './admin-app.js';
 import { esc } from '../utils/html.js';
+import { showToast } from '../utils/toast.js';
+import { confirmModal } from '../utils/confirm-modal.js';
 
 let allSkills = [];
 let currentFilter = { search: '', category: '' };
@@ -141,13 +143,13 @@ function attachRowHandlers(container) {
         btn.addEventListener('click', async () => {
             const skill = allSkills.find(s => s.id == btn.dataset.id);
             if (!skill) return;
-            if (!confirm(`Delete skill "${skill.name}"? This cannot be undone.`)) return;
+            if (!await confirmModal(`Delete skill "${skill.name}"? This cannot be undone.`, { confirmLabel: 'Delete', danger: true })) return;
             try {
                 await del(`/api/admin/skills/${skill.id}`);
                 allSkills = allSkills.filter(s => s.id !== skill.id);
                 updateTable();
             } catch (err) {
-                alert('Delete failed: ' + err.message);
+                showToast('Delete failed: ' + err.message, 'error');
             }
         });
     });

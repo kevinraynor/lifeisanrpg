@@ -4,10 +4,11 @@
 import Store from '../store.js';
 import { get } from '../api.js';
 import { renderProgressBar } from '../components/progress-bar.js';
+import { renderLoading, renderLoadError, bindLoadErrorRetry } from '../components/loading.js';
 import { escapeHtml } from '../utils/html.js';
 
 export async function renderSkillDetail(container, skillSlug) {
-    container.innerHTML = '<p>Loading skill details...</p>';
+    container.innerHTML = renderLoading('Loading skill details…');
 
     try {
         // Accept slug (string) or legacy numeric id
@@ -80,18 +81,34 @@ export async function renderSkillDetail(container, skillSlug) {
             history.back();
         });
     } catch (err) {
-        container.innerHTML = `<p class="form-error">Could not load skill: ${escapeHtml(err.message)}</p>`;
+        console.warn('Skill detail load failed:', err);
+        container.innerHTML = renderLoadError(`Could not load skill: ${err.message || 'unknown error'}`);
+        bindLoadErrorRetry(container, () => renderSkillDetail(container, skillSlug));
     }
 }
 
+/**
+ * Minimal Markdown → HTML converter for admin-authored skill body content.
+ *
+ * Safety: raw input is HTML-escaped before any regex runs, so the only HTML tags
+ * introduced are the ones explicitly created below — none can carry event handlers.
+ * Link hrefs are restricted to http/https to block javascript: URLs.
+ */
 function simpleMarkdown(md) {
-    // Very basic Markdown to HTML (headings, paragraphs, bold, italic, links, lists)
     let html = escapeHtml(md);
+    // Headings
     html = html.replace(/^### (.+)$/gm, '<h4>$1</h4>');
     html = html.replace(/^## (.+)$/gm, '<h3>$1</h3>');
     html = html.replace(/^# (.+)$/gm, '<h2>$1</h2>');
+    // Inline formatting
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Links — only http/https; text and URL are already HTML-escaped
+    html = html.replace(
+        /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+    // Paragraphs
     html = html.replace(/\n\n/g, '</p><p>');
     html = '<p>' + html + '</p>';
     return html;

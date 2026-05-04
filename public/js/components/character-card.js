@@ -3,7 +3,7 @@
  * Renders a character's avatar, name, class, quote, attributes, and top skills.
  */
 import Store from '../store.js';
-import { renderProgressBar } from './progress-bar.js';
+import { renderSkillRow } from './skill-card.js';
 import { escapeHtml } from '../utils/html.js';
 
 /**
@@ -44,20 +44,7 @@ export function renderCharacterCard({ character, skills = [], attributeScores = 
         .sort((a, b) => (b.current_level || 0) - (a.current_level || 0))
         .slice(0, topN);
 
-    const skillsHTML = topSkills.map(us => {
-        const maxLevel = parseInt(us.max_level) || 250;
-        const level = parseInt(us.current_level) || 0;
-        const progress = Store.levelProgress(parseInt(us.total_xp) || 0, maxLevel);
-        return `
-            <div class="card-skill-row">
-                <div class="card-skill-info">
-                    <span class="card-skill-name">${us.name}</span>
-                    <span class="card-skill-level">Lv. ${level}</span>
-                </div>
-                ${renderProgressBar(progress)}
-            </div>
-        `;
-    }).join('');
+    const skillsHTML = topSkills.map(us => renderSkillRow(us)).join('');
 
     const quote = character.quote || '';
     const quotePlaceholder = isOwn ? 'Click to add your motto...' : '';

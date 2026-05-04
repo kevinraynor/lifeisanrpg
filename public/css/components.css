@@ -400,6 +400,54 @@
     font-size: 0.8rem;
 }
 
+/* --- Shared loading + load-error states --- */
+.app-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2xl) var(--space-lg);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-family: var(--font-ui);
+}
+
+.app-loading__spinner {
+    font-size: 2rem;
+    color: var(--color-gold);
+    animation: pulse 1.4s ease-in-out infinite;
+}
+
+.app-loading__message {
+    margin-top: var(--space-sm);
+    font-size: 0.9rem;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.1); }
+}
+
+.app-load-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl) var(--space-lg);
+    text-align: center;
+    background: var(--color-bg-secondary);
+    border: 1px dashed var(--color-gold-dark);
+    border-radius: var(--border-radius);
+    margin: var(--space-xl) auto;
+    max-width: 420px;
+}
+
+.app-load-error__message {
+    font-family: var(--font-ui);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-md);
+}
+
 /* --- Modal --- */
 .modal-overlay {
     position: fixed;
@@ -460,6 +508,31 @@
     margin-top: var(--space-lg);
     font-size: 0.85rem;
     color: var(--color-text-muted);
+}
+
+/* --- Confirm Dialog (inside .modal-overlay) --- */
+.confirm-dialog {
+    background: var(--color-bg-card);
+    border: var(--border-card-light);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-xl) var(--space-2xl);
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+}
+
+.confirm-dialog__message {
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xl);
+    line-height: 1.5;
+}
+
+.confirm-dialog__actions {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
 }
 
 .auth-form .form-group {
@@ -963,16 +1036,35 @@
 
 .log-hours-input {
     width: 70px !important;
+    flex-shrink: 0;
 }
 
 .log-note-input {
     width: 140px !important;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .form-input--note {
     width: 140px;
     padding: 4px 8px;
     font-size: 0.85rem;
+}
+
+/* On narrow phones the fixed widths above force horizontal overflow; let the
+   note input fill the remaining row instead. */
+@media (max-width: 480px) {
+    .log-form {
+        flex-wrap: wrap;
+    }
+    .log-hours-input {
+        width: 70px !important;
+    }
+    .log-note-input {
+        width: auto !important;
+        flex: 1 1 100%;
+        min-width: 0;
+    }
 }
 
 /* --- Skills Group (Skills Page) --- */
@@ -1142,6 +1234,35 @@
     font-size: 0.8rem;
     color: var(--color-red);
     margin-bottom: var(--space-sm);
+}
+
+/* Hint shown above the explore grid when locked skills are hidden by the filter. */
+.explore-locked-hint {
+    grid-column: 1 / -1;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg-secondary);
+    border: 1px dashed var(--color-gold-dark);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--space-md);
+}
+
+.link-button {
+    background: none;
+    border: none;
+    color: var(--color-gold-dark);
+    font-family: inherit;
+    font-size: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+}
+
+.link-button:hover {
+    color: var(--color-gold);
 }
 
 .badge-activated {

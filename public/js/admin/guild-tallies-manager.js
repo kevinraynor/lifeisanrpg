@@ -4,6 +4,8 @@
  */
 import { get, post, put, del } from '../api.js';
 import { esc } from '../utils/html.js';
+import { showToast } from '../utils/toast.js';
+import { confirmModal } from '../utils/confirm-modal.js';
 
 const PERIODS = ['weekly', 'monthly'];
 const PERIOD_LABELS = { weekly: 'Weekly', monthly: 'Monthly' };
@@ -95,7 +97,7 @@ function renderContent(container) {
             const id = btn.dataset.id;
             const payload = collectRow(row);
             if (!payload) return;
-            btn.disabled = true; btn.textContent = '…';
+            btn.disabled = true; btn.textContent = 'Saving…';
             try {
                 await put(`/api/admin/guild-tally-variations/${id}`, payload);
                 const idx = variations.findIndex(v => v.id == id);
@@ -103,7 +105,7 @@ function renderContent(container) {
                 btn.textContent = 'Saved!';
                 setTimeout(() => { btn.disabled = false; btn.textContent = 'Save'; }, 1200);
             } catch (err) {
-                alert(err.message || 'Save failed');
+                showToast(err.message || 'Save failed', 'error');
                 btn.disabled = false; btn.textContent = 'Save';
             }
         });
@@ -112,7 +114,7 @@ function renderContent(container) {
     // Delete rows
     editor.querySelectorAll('.gtv-delete').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (!confirm('Delete this variation? Guilds that have already activated it keep their existing tally.')) return;
+            if (!await confirmModal('Delete this variation? Guilds that have already activated it keep their existing tally.', { confirmLabel: 'Delete', danger: true })) return;
             const id = btn.dataset.id;
             btn.disabled = true;
             try {
@@ -120,7 +122,7 @@ function renderContent(container) {
                 variations = variations.filter(v => v.id != id);
                 renderContent(container);
             } catch (err) {
-                alert(err.message || 'Delete failed');
+                showToast(err.message || 'Delete failed', 'error');
                 btn.disabled = false;
             }
         });
@@ -149,7 +151,7 @@ function renderContent(container) {
         if (!hours || hours <= 0)     { errorEl.textContent = 'Hours per member must be > 0'; return; }
         if (isNaN(bonusXp) || bonusXp < 0) { errorEl.textContent = 'Bonus XP must be ≥ 0'; return; }
 
-        btn.disabled = true; btn.textContent = '…';
+        btn.disabled = true; btn.textContent = 'Adding…';
         try {
             const result = await post('/api/admin/guild-tally-variations', {
                 period: currentPeriod,
@@ -185,7 +187,7 @@ function collectRow(row) {
     const sortOrder = parseInt(row.querySelector('.gtv-order').value || '0', 10);
     const isActive  = row.querySelector('.gtv-active').checked ? 1 : 0;
 
-    if (!name || name.length < 2) { alert('Name must be at least 2 characters'); return null; }
-    if (!hours || hours <= 0)     { alert('Hours per member must be > 0'); return null; }
+    if (!name || name.length < 2) { showToast('Name must be at least 2 characters', 'error'); return null; }
+    if (!hours || hours <= 0)     { showToast('Hours per member must be > 0', 'error'); return null; }
     return { name, description: desc || null, base_hours_per_member: hours, bonus_xp: bonusXp, min_guild_level: minLvl, sort_order: sortOrder, is_active: isActive };
 }

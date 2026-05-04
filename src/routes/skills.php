@@ -6,10 +6,7 @@
 // Get all global skills
 $router->get('/api/skills', function () {
     $db = Database::getInstance();
-    $skills = $db->query('
-        SELECT id, name, slug, description, icon, max_level, xp_multiplier, category, sort_order
-        FROM skills WHERE is_active = 1 ORDER BY sort_order
-    ')->fetchAll();
+    $skills = $db->query('SELECT ' . Skills::COLS . ' FROM skills WHERE is_active = 1 ORDER BY sort_order')->fetchAll();
     json_response($skills);
 });
 
@@ -29,9 +26,7 @@ $router->get('/api/skills/by-slug/{slug}', function (string $slug) {
         json_error('Skill not found', 404);
     }
 
-    $skill['celebrities'] = json_decode($skill['celebrities'] ?? 'null', true);
-    $skill['resources']   = json_decode($skill['resources']   ?? 'null', true);
-    $skill['tips']        = json_decode($skill['tips']        ?? 'null', true);
+    Skills::decodeContent($skill);
 
     $stmt = $db->prepare('
         SELECT sam.attribute_id, a.name as attribute_name, a.slug as attribute_slug, sam.ratio
@@ -71,10 +66,7 @@ $router->get('/api/skills/{id}', function (string $id) {
         json_error('Skill not found', 404);
     }
 
-    // Decode JSON fields
-    $skill['celebrities'] = json_decode($skill['celebrities'] ?? 'null', true);
-    $skill['resources'] = json_decode($skill['resources'] ?? 'null', true);
-    $skill['tips'] = json_decode($skill['tips'] ?? 'null', true);
+    Skills::decodeContent($skill);
 
     // Get attribute mappings
     $stmt = $db->prepare('
@@ -105,7 +97,7 @@ $router->get('/api/user/skills', function () {
     requireAuth();
     $db = Database::getInstance();
     $stmt = $db->prepare('
-        SELECT us.*, s.name, s.slug, s.description, s.icon, s.max_level, s.xp_multiplier, s.category
+        SELECT us.*, ' . Skills::joinCols('s') . '
         FROM user_skills us
         JOIN skills s ON s.id = us.skill_id
         WHERE us.user_id = ?

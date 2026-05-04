@@ -9,6 +9,7 @@ import { showLevelUp, showXPFloat } from '../components/level-up.js';
 import { loadActivityFeed } from '../components/social-feed.js';
 import { skillIconHtml } from '../components/skill-icon.js';
 import { escapeHtml } from '../utils/html.js';
+import { showToast } from '../utils/toast.js';
 
 const CATEGORY_ICONS = {
     physical: '💪', mental: '🧠', creative: '🎨', technical: '⚙️',
@@ -111,6 +112,8 @@ function renderSkillCard(us) {
 async function handleLogHours(e) {
     e.preventDefault();
     const form = e.target;
+    // Debounce double-submit: ignore rapid resubmissions while a request is in flight.
+    if (form.dataset.submitting === '1') return;
     const skillId = parseInt(form.dataset.skillId);
     const skillName = form.dataset.skillName;
     const hoursInput = form.querySelector('.log-hours-input');
@@ -120,8 +123,9 @@ async function handleLogHours(e) {
 
     if (!hours || hours <= 0 || hours > 24) return;
 
+    form.dataset.submitting = '1';
     btn.disabled = true;
-    btn.textContent = '...';
+    btn.textContent = 'Logging…';
 
     const attrBefore = { ...Store.attributeScores };
 
@@ -205,6 +209,10 @@ async function handleLogHours(e) {
             setTimeout(() => {
                 showLevelUp(skillName, result.level_after, result.xp_earned, {}, questsCompleted, guildTallies, guildLevelUps);
             }, 400);
+        } else {
+            // No celebration modal will fire — show a simple confirmation toast
+            // so the user knows the log went through.
+            showToast(`Logged ${hours}h to ${skillName}`, 'success');
         }
 
         // Refresh activity feed in the right panel
@@ -213,8 +221,9 @@ async function handleLogHours(e) {
         hoursInput.value = '';
         noteInput.value = '';
     } catch (err) {
-        alert(err.message || 'Failed to log hours');
+        showToast(err.message || 'Failed to log hours', 'error');
     } finally {
+        form.dataset.submitting = '';
         btn.disabled = false;
         btn.textContent = 'Log';
     }

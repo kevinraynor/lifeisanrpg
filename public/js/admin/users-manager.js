@@ -3,6 +3,8 @@
  */
 import { get, put, del } from '../api.js';
 import { esc } from '../utils/html.js';
+import { showToast } from '../utils/toast.js';
+import { confirmModal } from '../utils/confirm-modal.js';
 
 let allUsers = [];
 let searchQuery = '';
@@ -132,7 +134,7 @@ function attachUserHandlers(container) {
                 const user = allUsers.find(u => u.id == userId);
                 if (user) user.role = newRole;
             } catch (err) {
-                alert('Failed to change role: ' + err.message);
+                showToast('Failed to change role: ' + err.message, 'error');
                 select.value = select.dataset.current;
             }
         });
@@ -151,7 +153,7 @@ function attachUserHandlers(container) {
                 if (user) user.is_active = newActive;
                 renderUsersList(container);
             } catch (err) {
-                alert('Failed: ' + err.message);
+                showToast('Failed: ' + err.message, 'error');
                 btn.disabled = false;
             }
         });
@@ -163,14 +165,14 @@ function attachUserHandlers(container) {
             const userId = btn.dataset.id;
             const user = allUsers.find(u => u.id == userId);
             if (!user) return;
-            if (!confirm(`Delete user "${user.character_name || user.email}"? This will permanently remove all their data.`)) return;
+            if (!await confirmModal(`Delete user "${user.character_name || user.email}"? This will permanently remove all their data.`, { confirmLabel: 'Delete', danger: true })) return;
             btn.disabled = true;
             try {
                 await del(`/api/admin/users/${userId}`);
                 allUsers = allUsers.filter(u => u.id != userId);
                 renderUsersList(container);
             } catch (err) {
-                alert('Delete failed: ' + err.message);
+                showToast('Delete failed: ' + err.message, 'error');
                 btn.disabled = false;
             }
         });

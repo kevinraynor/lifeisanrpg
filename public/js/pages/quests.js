@@ -2,9 +2,11 @@
  * Quests page — Daily / Weekly / Monthly quest system.
  */
 import Store from '../store.js';
-import { post, get } from '../api.js';
+import { get, post } from '../api.js';
 import { showLevelUp } from '../components/level-up.js';
+import { renderLoading } from '../components/loading.js';
 import { esc } from '../utils/html.js';
+import { showToast } from '../utils/toast.js';
 
 const TABS = ['daily', 'weekly', 'monthly'];
 const TAB_LABELS = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
@@ -15,10 +17,15 @@ let container = null;
 let currentAvailable = [];
 let loadingAvailable = false;
 
-export function renderQuests(el) {
+export async function renderQuests(el) {
     container = el;
     currentTab = 'daily';
     currentAvailable = [];
+    container.innerHTML = `<div class="quests-page">${renderLoading('Loading your quests…')}</div>`;
+    try {
+        const data = await get('/api/user/quests');
+        Store.setQuests(data);
+    } catch { /* keep Store defaults — render will show empty state */ }
     render();
     fetchAvailable(currentTab);
 }
@@ -77,6 +84,15 @@ function render() {
         `;
     } else if (activeList.length === 0) {
         availSectionHtml = `<p class="quests-empty">All ${TAB_LABELS[currentTab].toLowerCase()} quest slots used for this period.</p>`;
+    } else {
+        // Slots full but quests are active — explain *why* there's no "available" section.
+        const periodLabel = TAB_LABELS[currentTab].toLowerCase();
+        availSectionHtml = `
+            <div class="quests-slot-full-banner">
+                <strong>All ${limit} ${periodLabel} quest slots are in use.</strong>
+                Complete an active quest to free a slot, or wait until the period resets.
+            </div>
+        `;
     }
 
     container.innerHTML = `
@@ -206,8 +222,9 @@ async function fetchAvailable(period) {
         const data = await get(`/api/user/quests/available?period=${period}`);
         if (period !== currentTab) return;
         currentAvailable = data;
-    } catch {
-        currentAvailable = [];              // silent fail — show empty state
+    } catch (err) {
+        console.warn(`Available quests (${period}) fetch failed:`, err);
+        currentAvailable = [];              // graceful degradation — show empty state
     } finally {
         loadingAvailable = false;
         refreshAvailableList();             // repaint with the results
@@ -222,7 +239,7 @@ function refreshAvailableList() {
 }
 
 async function handleActivate(variationId, btn) {
-    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Activating…'; }
     try {
         await post('/api/user/quests/activate', { variation_id: variationId });
         const fresh = await get('/api/user/quests');
@@ -231,7 +248,7 @@ async function handleActivate(variationId, btn) {
         render();
         fetchAvailable(currentTab);
     } catch (err) {
-        alert(err.message || 'Failed to activate quest');
+        showToast(err.message || 'Failed to activate quest', 'error');
         if (btn) { btn.disabled = false; btn.textContent = 'Activate'; }
     }
 }

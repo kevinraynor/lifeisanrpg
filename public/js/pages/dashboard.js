@@ -6,6 +6,7 @@ import Store from '../store.js';
 import { put } from '../api.js';
 import { renderCharacterCard } from '../components/character-card.js';
 import { escapeHtml } from '../utils/html.js';
+import { showToast } from '../utils/toast.js';
 
 export function renderDashboard(container) {
     const characterId = Store.character?.user_id || Store.user?.id;
@@ -29,7 +30,6 @@ export function renderDashboard(container) {
                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                         </svg>
                     </button>
-                    <div class="share-toast" id="share-toast">Link copied!</div>
                 ` : ''}
             </div>
         </div>
@@ -40,13 +40,7 @@ export function renderDashboard(container) {
     if (shareBtn && characterId) {
         shareBtn.addEventListener('click', () => {
             const url = `${window.location.origin}/share/${characterId}`;
-            navigator.clipboard.writeText(url).then(() => {
-                const toast = document.getElementById('share-toast');
-                if (toast) {
-                    toast.classList.add('visible');
-                    setTimeout(() => toast.classList.remove('visible'), 2500);
-                }
-            });
+            navigator.clipboard.writeText(url).then(() => showToast('Link copied!'));
         });
     }
 
@@ -105,7 +99,7 @@ function showQuoteEditor(quoteArea, container) {
         if (wordCount(quote) > 30) return;
 
         saveBtn.disabled = true;
-        saveBtn.textContent = '...';
+        saveBtn.textContent = 'Saving…';
 
         try {
             await put('/api/character', { quote });

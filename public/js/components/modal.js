@@ -26,10 +26,11 @@
  * @param {string}   [opts.className='modal-overlay']
  * @param {string}   [opts.content='']
  * @param {boolean}  [opts.animate=false]
+ * @param {boolean}  [opts.escClose=true]   Close on Escape key
  * @param {Function} [opts.onClose]
  * @returns {{ el: HTMLElement, close: Function }}
  */
-export function openModal({ className = 'modal-overlay', content = '', animate = false, onClose } = {}) {
+export function openModal({ className = 'modal-overlay', content = '', animate = false, escClose = true, onClose } = {}) {
     const el = document.createElement('div');
     el.className = className;
 
@@ -40,7 +41,11 @@ export function openModal({ className = 'modal-overlay', content = '', animate =
 
     if (animate) requestAnimationFrame(() => el.classList.add('visible'));
 
+    let closed = false;
     function close() {
+        if (closed) return;          // guard against double-close (e.g. ESC + button)
+        closed = true;
+        document.removeEventListener('keydown', onKeydown);
         if (animate) {
             el.classList.remove('visible');
             setTimeout(() => { el.remove(); onClose?.(); }, 300);
@@ -49,6 +54,11 @@ export function openModal({ className = 'modal-overlay', content = '', animate =
             onClose?.();
         }
     }
+
+    function onKeydown(e) {
+        if (e.key === 'Escape') { e.stopPropagation(); close(); }
+    }
+    if (escClose) document.addEventListener('keydown', onKeydown);
 
     // Backdrop click
     el.addEventListener('click', (e) => { if (e.target === el) close(); });

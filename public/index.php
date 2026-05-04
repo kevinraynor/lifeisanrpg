@@ -29,6 +29,8 @@ require BASE_PATH . '/src/models/Database.php';
 require BASE_PATH . '/src/models/AppException.php';
 require BASE_PATH . '/src/models/XP.php';
 require BASE_PATH . '/src/models/Settings.php';
+require BASE_PATH . '/src/models/Skills.php';
+require BASE_PATH . '/src/models/User.php';
 require BASE_PATH . '/src/models/Quests.php';
 require BASE_PATH . '/src/models/Guilds.php';
 

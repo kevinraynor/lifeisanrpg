@@ -53,6 +53,7 @@
 }
 
 .level-up-content {
+    position: relative;
     background: var(--color-bg-card);
     border: var(--border-ornate);
     border-radius: var(--border-radius-lg);
@@ -60,6 +61,22 @@
     text-align: center;
     animation: levelUpBurst 0.6s ease-out, levelUpGlow 1.5s ease-out;
 }
+
+/* Close (×) button in the top-right of the level-up modal. */
+.level-up-x {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 0 var(--space-xs);
+}
+
+.level-up-x:hover { color: var(--color-text-primary); }
 
 .level-up-stars {
     font-size: 1.5rem;

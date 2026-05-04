@@ -172,6 +172,7 @@ $router->post('/api/auth/login', function () {
 
 // Logout
 $router->post('/api/auth/logout', function () {
+    requireAuth();
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
         $params = session_get_cookie_params();

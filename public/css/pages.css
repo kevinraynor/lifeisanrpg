@@ -264,11 +264,15 @@
     .character-card {
         flex-direction: column;
         max-width: 340px;
+        width: 100%;
     }
 
     .character-card__portrait {
         width: 100%;
-        height: 240px;
+        /* Use aspect-ratio so the portrait scales with the card width on narrow
+           phones rather than being clipped to a fixed 240px height. */
+        height: auto;
+        aspect-ratio: 4 / 3;
     }
 
     .hero {
@@ -593,6 +597,16 @@
     transform: translateX(-50%) translateY(0);
 }
 
+.friends-toast--success {
+    border-color: var(--color-green);
+    color: var(--color-green);
+}
+
+.friends-toast--error {
+    border-color: #c0392b;
+    color: #ff8a7a;
+}
+
 /* --- Responsive --- */
 @media (max-width: 600px) {
     .friends-grid {
@@ -704,6 +718,26 @@
     border-radius: 20px;
 }
 
+/* Banner shown when all quest slots are taken so the user knows why there's no
+   "Available Quests" section to pick from. */
+.quests-slot-full-banner {
+    background: var(--color-bg-secondary);
+    border: 1px dashed var(--color-gold-dark);
+    border-radius: var(--border-radius);
+    padding: var(--space-md) var(--space-lg);
+    margin-top: var(--space-lg);
+    color: var(--color-text-primary);
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.quests-slot-full-banner strong {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--color-gold-dark);
+}
+
 /* Skill icon inside cards */
 .quest-card__skill-icon {
     width: 20px;
@@ -753,6 +787,27 @@
 .guild-loading, .guild-error { text-align: center; color: var(--color-text-muted); padding: var(--space-xl); }
 .guild-empty  { color: var(--color-text-muted); font-style: italic; margin: var(--space-sm) 0; }
 .guild-locked-hint { color: var(--color-text-muted); font-size: .9rem; margin: var(--space-xs) 0; }
+
+/* Onboarding nudge for a brand-new solo guild. */
+.guild-onboarding-nudge {
+    background: var(--color-bg-card);
+    border: var(--border-ornate);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-lg) var(--space-xl);
+    margin-bottom: var(--space-lg);
+    text-align: center;
+}
+
+.guild-onboarding-nudge h3 {
+    margin: 0 0 var(--space-xs);
+    color: var(--color-gold-dark);
+}
+
+.guild-onboarding-nudge p {
+    margin: 0 0 var(--space-md);
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+}
 .guild-searching  { color: var(--color-text-muted); font-style: italic; }
 
 .guild-page__header { margin-bottom: var(--space-lg); }

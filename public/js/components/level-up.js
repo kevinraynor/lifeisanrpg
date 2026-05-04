@@ -54,6 +54,7 @@ export function showLevelUp(skillName, newLevel, xpEarned, attrDiff = {}, bonusQ
         className: 'level-up-overlay',
         content: `
             <div class="level-up-content">
+                <button class="modal-close level-up-x" aria-label="Close">&times;</button>
                 <div class="level-up-stars">&#10029; &#10029; &#10029;</div>
                 ${headline}
                 ${attrsHTML}
@@ -69,6 +70,7 @@ export function showLevelUp(skillName, newLevel, xpEarned, attrDiff = {}, bonusQ
 
     closeCurrentModal = close;
     el.querySelector('.level-up-close').addEventListener('click', close);
+    el.querySelector('.level-up-x').addEventListener('click', close);
 }
 
 /**

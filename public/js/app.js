@@ -12,7 +12,7 @@ import { renderAttributes } from './pages/attributes.js';
 import { renderSkillDetail } from './pages/skill-detail.js';
 import { renderQuests } from './pages/quests.js';
 import { renderFriends } from './pages/friends.js';
-import { renderGuild } from './pages/guild.js';
+import { renderGuild } from './pages/guild/index.js';
 import { renderSkillTree } from './pages/skill-tree.js';
 import { loadActivityFeed } from './components/social-feed.js';
 import { updateFriendBadge, updateGuildBadge } from './utils/badge.js';

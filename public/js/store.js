@@ -17,13 +17,13 @@ const Store = {
     userSkills: [],
     attributeScores: {},
     allSkills: [],
-    allClasses: [],
     allAttributes: [],
     skillAttrMap: [],
     skillPrereqs: [],
     csrfToken: '',
     pendingFriendCount: 0,
     friends: [],             // populated lazily when friends page or explore loads
+    // quests/guild: populated lazily by their respective pages
     quests:           { daily: [], weekly: [], monthly: [] },
     questMultipliers: { daily: 0.5, weekly: 0.75, monthly: 1.0 },
     questSlotLimits:  { daily: 3, weekly: 2, monthly: 1 },
@@ -41,29 +41,21 @@ const Store = {
         this.userSkills = data.userSkills || [];
         this.attributeScores = data.attributeScores || {};
         this.allSkills = data.allSkills || [];
-        this.allClasses = data.allClasses || [];
         this.allAttributes = data.allAttributes || [];
         this.skillAttrMap = data.skillAttrMap || [];
         this.skillPrereqs = data.skillPrereqs || [];
         this.csrfToken = data.csrfToken || '';
         this.pendingFriendCount = data.pendingFriendCount || 0;
-        this.friends = [];
-        this.quests           = data.quests           || this.quests;
-        this.questMultipliers = data.questMultipliers || this.questMultipliers;
-        this.questSlotLimits  = data.questSlotLimits  || this.questSlotLimits;
-        this.guild                   = data.guild                   || null;
-        this.guildInvitations        = data.guildInvitations        || [];
         this.pendingGuildInviteCount = data.pendingGuildInviteCount || 0;
+        this.friends = [];
+        // quests, questMultipliers, questSlotLimits, guild, guildInvitations keep
+        // their defaults here; populated lazily by quests/guild pages on mount.
     },
 
     // --- Lookups ---
 
     getSkillById(id) {
         return this.allSkills.find(s => s.id == id);
-    },
-
-    getClassById(id) {
-        return this.allClasses.find(c => c.id == id);
     },
 
     getAttributeById(id) {

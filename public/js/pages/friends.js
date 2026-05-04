@@ -6,6 +6,9 @@ import Store from '../store.js';
 import { updateFriendBadge } from '../utils/badge.js';
 import { escapeHtml } from '../utils/html.js';
 import { showToast } from '../utils/toast.js';
+import { confirmModal } from '../utils/confirm-modal.js';
+import { renderSearchResult } from '../utils/user-row.js';
+import { renderLoading, renderLoadError, bindLoadErrorRetry } from '../components/loading.js';
 
 export async function renderFriends(container) {
     container.innerHTML = `
@@ -14,7 +17,7 @@ export async function renderFriends(container) {
                 <h2>Friends</h2>
                 <p class="section-subtitle">Your adventuring companions</p>
             </div>
-            <div id="friends-loading" class="friends-loading">Loading...</div>
+            <div id="friends-loading">${renderLoading('Loading your friends…')}</div>
             <div id="friends-pending-section"></div>
             <div id="friends-grid-section"></div>
             <div id="friends-add-section"></div>
@@ -23,8 +26,8 @@ export async function renderFriends(container) {
 
     try {
         const [friends, pending] = await Promise.all([
-            get('/api/friends').catch(() => []),
-            get('/api/friends/pending').catch(() => []),
+            get('/api/friends').catch(e => { console.warn('Friends list failed:', e); return []; }),
+            get('/api/friends/pending').catch(e => { console.warn('Pending list failed:', e); return []; }),
         ]);
 
         // Sync store
@@ -37,8 +40,13 @@ export async function renderFriends(container) {
         renderPendingSection(pending, container);
         renderFriendsGrid(friends, container);
         renderAddFriendSection(container);
-    } catch {
-        document.getElementById('friends-loading').textContent = 'Could not load friends. Please refresh.';
+    } catch (e) {
+        console.warn('Friends page load failed:', e);
+        const loadingEl = document.getElementById('friends-loading');
+        if (loadingEl) {
+            loadingEl.innerHTML = renderLoadError('Could not load your friends.');
+            bindLoadErrorRetry(loadingEl, () => renderFriends(container));
+        }
     }
 }
 
@@ -144,7 +152,7 @@ function renderFriendsGrid(friends, pageContainer) {
 
     el.querySelectorAll('.btn-unfriend').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (!confirm(`Remove ${btn.dataset.name} from your friends?`)) return;
+            if (!await confirmModal(`Remove ${btn.dataset.name} from your friends?`, { confirmLabel: 'Unfriend', danger: true })) return;
             btn.disabled = true;
             try {
                 await del(`/api/friends/${btn.dataset.id}`);
@@ -236,54 +244,44 @@ async function handleSearch(q) {
             results.innerHTML = `<p class="friends-empty">No adventurers found for &ldquo;${escapeHtml(q)}&rdquo;.</p>`;
             return;
         }
-        results.innerHTML = data.map(renderSearchResult).join('');
+        results.innerHTML = data.map(renderFriendSearchResult).join('');
 
         results.querySelectorAll('.btn-send-request').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const userId = parseInt(btn.dataset.userId);
                 btn.disabled = true;
-                btn.textContent = 'Sending...';
+                btn.textContent = 'Sending…';
                 try {
                     await post('/api/friends/request', { user_id: userId });
                     btn.textContent = 'Sent!';
                     btn.classList.remove('btn-primary');
                     btn.classList.add('btn-secondary');
                 } catch (e) {
-                    btn.textContent = e.message || 'Error';
+                    // Show a toast and restore the button so the user can retry —
+                    // previously the error was burned into the button label and
+                    // could render as a permanent "Sent!"-looking failure.
+                    showToast(e.message || 'Could not send friend request', 'error');
                     btn.disabled = false;
+                    btn.textContent = 'Add Friend';
                 }
             });
         });
-    } catch {
+    } catch (e) {
+        console.warn('Friend search failed:', e);
         results.innerHTML = `<p class="friends-empty">Search failed. Please try again.</p>`;
     }
 }
 
-function renderSearchResult(u) {
-    let actionHTML;
-    if (u.friendship_status === 'accepted') {
-        actionHTML = `<span class="badge-activated">Already friends</span>`;
-    } else if (u.friendship_status === 'pending') {
-        actionHTML = `<span class="badge-locked">Pending</span>`;
-    } else if (u.friendship_status === 'blocked') {
-        actionHTML = '';
-    } else {
-        actionHTML = `
-            <button class="btn-fantasy btn-primary btn-small btn-send-request"
-                    data-user-id="${u.user_id}">Add Friend</button>
-        `;
-    }
+function buildSearchResultAction(u) {
+    if (u.friendship_status === 'accepted') return `<span class="badge-activated">Already friends</span>`;
+    if (u.friendship_status === 'pending')  return `<span class="badge-locked">Pending</span>`;
+    if (u.friendship_status === 'blocked')  return '';
+    return `<button class="btn-fantasy btn-primary btn-small btn-send-request"
+                    data-user-id="${u.user_id}">Add Friend</button>`;
+}
 
-    return `
-        <div class="friend-search-result">
-            <div class="friend-search-result__info">
-                <span class="friend-search-result__name">${escapeHtml(u.character_name)}</span>
-                <span class="friend-search-result__class"
-                      style="color:${u.class_color || 'inherit'}">${escapeHtml(u.class_name)}</span>
-            </div>
-            <div class="friend-search-result__action">${actionHTML}</div>
-        </div>
-    `;
+function renderFriendSearchResult(u) {
+    return renderSearchResult(u, buildSearchResultAction(u));
 }
 
 // ---------------------------------------------------------------------------

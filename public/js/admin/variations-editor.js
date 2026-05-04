@@ -3,6 +3,8 @@
  */
 import { get, post, put, del } from '../api.js';
 import { esc } from '../utils/html.js';
+import { showToast } from '../utils/toast.js';
+import { confirmModal } from '../utils/confirm-modal.js';
 
 const PERIODS = ['daily', 'weekly', 'monthly'];
 const PERIOD_LABELS = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
@@ -107,11 +109,11 @@ function renderContent(container, skill, onBack, variations) {
             const hours = parseFloat(row.querySelector('.qv-hours').value);
             const isActive = row.querySelector('.qv-active').checked ? 1 : 0;
 
-            if (!name || name.length < 2) { alert('Name must be at least 2 characters'); return; }
-            if (!hours || hours <= 0) { alert('Hours must be > 0'); return; }
+            if (!name || name.length < 2) { showToast('Name must be at least 2 characters', 'error'); return; }
+            if (!hours || hours <= 0)      { showToast('Hours must be > 0', 'error'); return; }
 
             btn.disabled = true;
-            btn.textContent = '...';
+            btn.textContent = 'Saving…';
             try {
                 await put(`/api/admin/quest-variations/${id}`, { name, description: desc || null, hours, is_active: isActive });
                 const v = variations.find(x => x.id == id);
@@ -119,7 +121,7 @@ function renderContent(container, skill, onBack, variations) {
                 btn.textContent = 'Saved!';
                 setTimeout(() => { btn.disabled = false; btn.textContent = 'Save'; }, 1200);
             } catch (err) {
-                alert(err.message || 'Save failed');
+                showToast(err.message || 'Save failed', 'error');
                 btn.disabled = false;
                 btn.textContent = 'Save';
             }
@@ -128,7 +130,7 @@ function renderContent(container, skill, onBack, variations) {
 
     editor.querySelectorAll('.qv-delete').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (!confirm('Delete this variation? Any active user quests using it will be removed.')) return;
+            if (!await confirmModal('Delete this variation? Any active user quests using it will be removed.', { confirmLabel: 'Delete', danger: true })) return;
             const id = btn.dataset.id;
             btn.disabled = true;
             try {
@@ -136,7 +138,7 @@ function renderContent(container, skill, onBack, variations) {
                 variations = variations.filter(v => v.id != id);
                 renderContent(container, skill, onBack, variations);
             } catch (err) {
-                alert(err.message || 'Delete failed');
+                showToast(err.message || 'Delete failed', 'error');
                 btn.disabled = false;
             }
         });
@@ -158,7 +160,7 @@ function renderContent(container, skill, onBack, variations) {
         if (!hours || hours <= 0) { errorEl.textContent = 'Hours must be > 0'; return; }
 
         btn.disabled = true;
-        btn.textContent = '...';
+        btn.textContent = 'Adding…';
         try {
             const result = await post(`/api/admin/skills/${skill.id}/variations`, {
                 period: currentPeriod, name, description: desc || null, hours,

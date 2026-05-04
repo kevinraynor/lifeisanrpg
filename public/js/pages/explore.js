@@ -6,6 +6,7 @@ import { get, post } from '../api.js';
 import { openSkillExperienceModal } from '../components/skill-experience-modal.js';
 import { skillIconHtml } from '../components/skill-icon.js';
 import { escapeHtml } from '../utils/html.js';
+import { showToast } from '../utils/toast.js';
 
 export async function renderExplore(container) {
     const categories = ['all', 'physical', 'mental', 'creative', 'technical', 'practical', 'knowledge', 'social'];
@@ -61,14 +62,19 @@ export async function renderExplore(container) {
             );
         }
 
+        // Track how many locked skills are being hidden so we can hint at them.
+        let hiddenLocked = 0;
+
         // Available only (not already activated, prerequisites met)
         if (showAvailableOnly) {
             skills = skills.filter(s => {
                 if (Store.isSkillActivated(s.id)) return false;
-                return Store.canActivateSkill(s.id).can;
+                const can = Store.canActivateSkill(s.id).can;
+                if (!can) hiddenLocked++;
+                return can;
             });
         } else {
-            // Mark which are activated or locked
+            // Annotate with activation state
             skills = skills.map(s => ({
                 ...s,
                 _activated: Store.isSkillActivated(s.id),
@@ -82,13 +88,21 @@ export async function renderExplore(container) {
             return;
         }
 
-        grid.innerHTML = skills.map(s => {
+        // Hint about locked skills hidden by the filter, so users know what's coming.
+        const lockedHintHTML = hiddenLocked > 0
+            ? `<p class="explore-locked-hint">
+                   &#128274; ${hiddenLocked} skill${hiddenLocked !== 1 ? 's are' : ' is'} locked.
+                   <button class="link-button" id="explore-show-locked">Show all</button>
+                   to see what's coming.
+               </p>`
+            : '';
+
+        grid.innerHTML = lockedHintHTML + skills.map(s => {
             const activated = s._activated || Store.isSkillActivated(s.id);
             const available = s._available !== undefined ? s._available : Store.canActivateSkill(s.id).can;
             const prereqs = Store.getPrerequisites(s.id);
             const prereqText = prereqs.map(p => `${p.skill?.name || '?'} Lv. ${p.required_level}`).join(', ');
 
-            // Friends who also have this skill
             const friendsWithSkill = (Store.friends || []).filter(f =>
                 (f.skill_slugs || []).includes(s.slug)
             );
@@ -100,48 +114,18 @@ export async function renderExplore(container) {
                    </span>`
                 : '';
 
-            return `
-                <div class="explore-skill-card ${activated ? 'activated' : ''} ${!available && !activated ? 'locked' : ''}"
-                     data-skill-id="${s.id}" data-skill-slug="${s.slug || ''}" style="cursor:pointer">
-                    ${skillIconHtml(s.slug)}
-                    <div class="explore-skill-card__content">
-                        <div class="explore-skill-header">
-                            <span class="explore-skill-name">${escapeHtml(s.name)}</span>
-                            <span class="explore-skill-cat">${s.category || ''}</span>
-                        </div>
-                        <p class="explore-skill-desc">${escapeHtml(s.description || '')}</p>
-                        <div class="explore-skill-meta">
-                            <span>Max Lv. ${s.max_level}</span>
-                            ${parseFloat(s.xp_multiplier) !== 1 ? `<span>XP &times;${s.xp_multiplier}</span>` : ''}
-                            ${friendsIndicator}
-                        </div>
-                        ${prereqText ? `<div class="explore-skill-prereq">Requires: ${escapeHtml(prereqText)}</div>` : ''}
-                        <div class="explore-skill-action">
-                            ${activated
-                                ? '<span class="badge-activated">Active</span>'
-                                : available
-                                    ? `<button class="btn-fantasy btn-small btn-primary activate-btn" data-skill-id="${s.id}">Activate</button>`
-                                    : '<span class="badge-locked">Locked</span>'}
-                        </div>
-                    </div>
-                </div>
-            `;
+            return renderExploreCard(s, { activated, available, prereqText, friendsIndicator });
         }).join('');
 
-        // Navigate to skill detail on card click (not on button click)
-        grid.querySelectorAll('.explore-skill-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.closest('.activate-btn')) return; // let activate button handle itself
-                const slug = card.dataset.skillSlug;
-                if (slug) {
-                    history.pushState({}, '', `/app/skill/${slug}`);
-                    window.dispatchEvent(new PopStateEvent('popstate'));
-                }
-            });
-        });
-
+        bindCardClicks(grid);
         renderSuggested();
         attachActivateHandlers(grid);
+
+        // Wire up the "Show all" button on the locked-skills hint
+        document.getElementById('explore-show-locked')?.addEventListener('click', () => {
+            const cb = document.getElementById('explore-available');
+            if (cb) { cb.checked = false; renderSkills(); }
+        });
     }
 
     // Opens the experience modal, then activates with the computed hours.
@@ -157,7 +141,7 @@ export async function renderExplore(container) {
             saveLabel: 'Activate Skill',
             onSave: async (hours) => {
                 btn.disabled = true;
-                btn.textContent = '...';
+                btn.textContent = 'Activating…';
                 try {
                     const result = await post(`/api/user/skills/${skillId}/activate`, {
                         initial_hours: hours,
@@ -178,7 +162,7 @@ export async function renderExplore(container) {
                     });
                     renderSkills();
                 } catch (err) {
-                    alert(err.message || 'Could not activate skill');
+                    showToast(err.message || 'Could not activate skill');
                     btn.disabled = false;
                     btn.textContent = 'Activate';
                 }
@@ -192,6 +176,20 @@ export async function renderExplore(container) {
                 e.stopPropagation();
                 const skillId = parseInt(btn.dataset.skillId);
                 openActivateModal(skillId, btn);
+            });
+        });
+    }
+
+    /** Navigate to skill detail on card click (not on the activate button). */
+    function bindCardClicks(root) {
+        root.querySelectorAll('.explore-skill-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.activate-btn')) return;
+                const slug = card.dataset.skillSlug;
+                if (slug) {
+                    history.pushState({}, '', `/app/skill/${slug}`);
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                }
             });
         });
     }
@@ -242,34 +240,11 @@ export async function renderExplore(container) {
             <h3 class="suggested-title">Suggested for You</h3>
             <p class="suggested-desc">Based on your strongest attributes: ${escapeHtml(topAttrNames)}</p>
             <div class="suggested-grid">
-                ${top.map(({ skill: s }) => `
-                    <div class="explore-skill-card suggested" data-skill-id="${s.id}" data-skill-slug="${s.slug || ''}" style="cursor:pointer">
-                        ${skillIconHtml(s.slug)}
-                        <div class="explore-skill-card__content">
-                            <div class="explore-skill-header">
-                                <span class="explore-skill-name">${escapeHtml(s.name)}</span>
-                                <span class="explore-skill-cat">${s.category || ''}</span>
-                            </div>
-                            <p class="explore-skill-desc">${escapeHtml(s.description || '')}</p>
-                            <div class="explore-skill-action">
-                                <button class="btn-fantasy btn-small btn-primary activate-btn" data-skill-id="${s.id}">Activate</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
+                ${top.map(({ skill: s }) => renderExploreCard(s, { suggested: true })).join('')}
             </div>
         `;
 
-        host.querySelectorAll('.explore-skill-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.closest('.activate-btn')) return;
-                const slug = card.dataset.skillSlug;
-                if (slug) {
-                    history.pushState({}, '', `/app/skill/${slug}`);
-                    window.dispatchEvent(new PopStateEvent('popstate'));
-                }
-            });
-        });
+        bindCardClicks(host);
         attachActivateHandlers(host);
     }
 
@@ -277,7 +252,8 @@ export async function renderExplore(container) {
     if (!Store.friends || Store.friends.length === 0) {
         try {
             Store.friends = await get('/api/friends');
-        } catch {
+        } catch (err) {
+            console.warn('Friends list fetch failed (indicator hidden):', err);
             Store.friends = [];
         }
     }
@@ -295,4 +271,55 @@ export async function renderExplore(container) {
     });
 
     renderSkills();
+}
+
+// ─── Shared card renderer ────────────────────────────────────────────────────
+
+/**
+ * Render a single explore skill card.
+ *
+ * @param {Object}  s
+ * @param {Object}  [opts]
+ * @param {boolean} [opts.activated=false]
+ * @param {boolean} [opts.available=true]
+ * @param {string}  [opts.prereqText='']
+ * @param {string}  [opts.friendsIndicator='']  Pre-built HTML string
+ * @param {boolean} [opts.suggested=false]       Suggested cards omit meta/prereq rows
+ */
+function renderExploreCard(s, {
+    activated = false,
+    available = true,
+    prereqText = '',
+    friendsIndicator = '',
+    suggested = false,
+} = {}) {
+    const stateClass = activated ? 'activated' : (!available ? 'locked' : '');
+    return `
+        <div class="explore-skill-card ${stateClass} ${suggested ? 'suggested' : ''}"
+             data-skill-id="${s.id}" data-skill-slug="${s.slug || ''}" style="cursor:pointer">
+            ${skillIconHtml(s.slug)}
+            <div class="explore-skill-card__content">
+                <div class="explore-skill-header">
+                    <span class="explore-skill-name">${escapeHtml(s.name)}</span>
+                    <span class="explore-skill-cat">${s.category || ''}</span>
+                </div>
+                <p class="explore-skill-desc">${escapeHtml(s.description || '')}</p>
+                ${!suggested ? `
+                    <div class="explore-skill-meta">
+                        <span>Max Lv. ${s.max_level}</span>
+                        ${parseFloat(s.xp_multiplier) !== 1 ? `<span>XP &times;${s.xp_multiplier}</span>` : ''}
+                        ${friendsIndicator}
+                    </div>
+                    ${prereqText ? `<div class="explore-skill-prereq">Requires: ${escapeHtml(prereqText)}</div>` : ''}
+                ` : ''}
+                <div class="explore-skill-action">
+                    ${activated
+                        ? '<span class="badge-activated">Active</span>'
+                        : available
+                            ? `<button class="btn-fantasy btn-small btn-primary activate-btn" data-skill-id="${s.id}">Activate</button>`
+                            : '<span class="badge-locked">Locked</span>'}
+                </div>
+            </div>
+        </div>
+    `;
 }

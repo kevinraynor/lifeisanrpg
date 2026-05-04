@@ -19,6 +19,46 @@ class User
     }
 
     /**
+     * Compute attribute scores for a user from their skill levels.
+     *
+     * Returns an associative array keyed by attribute_id, with integer scores.
+     * All attributes in the system are represented (zero-initialised if the user
+     * has no skills contributing to them).
+     *
+     * This is the single source of truth for the attribute calculation —
+     * previously the same O(n²) PHP loop lived in app.php, share.php, and
+     * character.php independently. Call this instead of reimplementing the loop.
+     *
+     * @return array<int, int>  attribute_id → rounded score
+     */
+    public static function computeAttributeScores(int $userId): array
+    {
+        $db = Database::getInstance();
+
+        // Initialise every attribute to 0 so even uncontributed attributes appear
+        $attrs = $db->query('SELECT id FROM attributes')->fetchAll();
+        $scores = [];
+        foreach ($attrs as $a) {
+            $scores[(int) $a['id']] = 0;
+        }
+
+        // SUM(level × ratio) per attribute in a single aggregation query
+        $stmt = $db->prepare('
+            SELECT sam.attribute_id, SUM(us.current_level * sam.ratio) AS total
+            FROM user_skills us
+            JOIN skill_attribute_map sam ON sam.skill_id = us.skill_id
+            WHERE us.user_id = ?
+            GROUP BY sam.attribute_id
+        ');
+        $stmt->execute([$userId]);
+        foreach ($stmt->fetchAll() as $row) {
+            $scores[(int) $row['attribute_id']] = (int) round((float) $row['total']);
+        }
+
+        return $scores;
+    }
+
+    /**
      * Recompute and persist current_level for a user skill from its stored total_xp.
      *
      * This is the single authoritative writer for user_skills.current_level.

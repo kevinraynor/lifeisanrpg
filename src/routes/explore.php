@@ -28,7 +28,7 @@ $router->get('/api/explore/suggested', function () {
     // Get skills not yet activated by user
     $placeholders = implode(',', array_fill(0, count($suggestedIds), '?'));
     $stmt = $db->prepare("
-        SELECT s.id, s.name, s.slug, s.description, s.icon, s.max_level, s.xp_multiplier, s.category
+        SELECT ' . Skills::COLS . '
         FROM skills s
         WHERE s.id IN ($placeholders)
         AND s.is_active = 1
